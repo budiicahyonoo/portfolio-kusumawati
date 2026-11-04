@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Home {
+  id                String   @id @default(uuid())
+  name              String
+  role              String
+  value_proposition String
+  photo_url         String?
+  email             String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+}
+
+model Skill {
+  id         String   @id @default(uuid())
+  name       String
+  category   String   // AI/ML, Frontend, Backend, Database, DevOps/Cloud, Tools
+  logo_url   String
+  sort_order Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Project {
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  category      String   // AI, WEB, APPS
+  thumbnail_url String?
+  demo_url      String?
+  view_url      String?
+  technologies  String[]
+  achievements  String[] @default([]) // Fitur utama / pencapaian
+  work_photos   String[] @default([]) // Galeri foto proyek
+  role          String?  // Contoh: "Solo Developer", "Lead AI Engineer"
+  metric        String?  // Contoh: "Akurasi 99.68%", "Digunakan 450+ pengguna"
+  sort_order    Int      @default(0)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
+model Experience {
+  id            String    @id @default(uuid())
+  title         String
+  description   String
+  category      String    // Work, Intern, Freelance
+  thumbnail_url String?
+  demo_url      String?
+  view_url      String?
+  technologies  String[]
+  achievements  String[]  // Poin pencapaian dampak (FR-E1)
+  date_start    DateTime?
+  date_end      DateTime?
+  sort_order    Int       @default(0)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  work_photos   String[] @default([]) // Array of URLs to work photos
+}
+
+model Blog {
+  id            String    @id @default(uuid())
+  title         String
+  slug          String?    @unique // Wajib untuk SEO URL
+  description   String
+  category      String    
+  tags          String[]  @default([]) // Label topik
+  thumbnail_url String?
+  content       String?   // Konten Markdown / HTML
+  is_published  Boolean   @default(false) // Draft (false) atau Publish (true)
+  view_url      String?
+  read_time     Int?
+  views         Int       @default(0)
+  likes         Int       @default(0)
+  sort_order    Int       @default(0)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  comments      Comment[]
+}
+
+model Comment {
+  id         String   @id @default(uuid())
+  blog_id    String
+  blog       Blog     @relation(fields: [blog_id], references: [id], onDelete: Cascade)
+  name       String
+  content    String
+  created_at DateTime @default(now())
+}
+
+model Contact {
+  id         String   @id @default(uuid())
+  platform   String   // Email, LinkedIn, GitHub, Calendly, WhatsApp
+  url        String
+  sort_order Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
