@@ -64,60 +64,57 @@ oversized gradients, and random floating decorations.
 
 ### 2.2 Color palette
 
-Use the following tokens as the initial source of truth. Do not
-introduce arbitrary colors per component.
+Use these tokens as the source of truth. Do not introduce arbitrary
+colors per component. The primary blue is the StackPlus identity color;
+the blue scale is derived from it, while the neutral and semantic scales
+remain distinct.
 
   -----------------------------------------------------------------------
   Token                   Hex                     Usage
   ----------------------- ----------------------- -----------------------
-  `--color-primary-950`   `#102B4E`               Deep headings, dark
-                                                  hero surfaces
+  `--color-primary-950`   `#111111`                 Deep headings
 
-  `--color-primary-900`   `#163B65`               Strong brand surfaces
+  `--color-primary-900`   Dark blue mix             Pressed surfaces
 
-  `--color-primary-800`   `#1D4F82`               Primary dark blue
+  `--color-primary-800`   Dark blue mix             Hover surfaces
 
-  `--color-primary-700`   `#25639B`               Primary interactive
-                                                  elements
+  `--color-primary-700`   `#0053FF`               StackPlus blue; primary
+                                                  interactive elements
 
-  `--color-primary-600`   `#347DB5`               Links and active
-                                                  accents
+  `--color-primary-600`   Blue mix                  Links and accents
 
-  `--color-primary-500`   `#5598CA`               Secondary accents
+  `--color-primary-500`   Blue mix                  Secondary accents
 
-  `--color-primary-300`   `#A9CDE7`               Borders and decorative
-                                                  lines
+  `--color-primary-300`   Blue mix                  Borders and soft accents
 
-  `--color-primary-200`   `#D1E5F4`               Soft blue surfaces
+  `--color-primary-200`   Blue mix                  Soft blue surfaces
 
-  `--color-primary-100`   `#EAF3FA`               Blue-tinted section
-                                                  backgrounds
+  `--color-primary-100`   Blue mix                  Blue-tinted surfaces
 
-  `--color-primary-50`    `#F5F9FD`               Very light blue
-                                                  surfaces
+  `--color-primary-50`    Blue mix                  Very light blue surfaces
 
   `--color-white`         `#FFFFFF`               Main card and page
                                                   surfaces
 
-  `--color-neutral-950`   `#17212B`               Main body text
+  `--color-neutral-950`   `#111111`               Main body text
 
-  `--color-neutral-800`   `#344454`               Secondary headings
+  `--color-neutral-800`   Tinted neutral            Secondary headings
 
-  `--color-neutral-700`   `#4B5B6A`               Body text
+  `--color-neutral-700`   Tinted neutral            Body text
 
-  `--color-neutral-600`   `#617181`               Muted text, only where
+  `--color-neutral-600`   Tinted neutral            Muted text, only where
                                                   contrast passes
 
-  `--color-neutral-400`   `#AAB6C1`               Disabled controls and
+  `--color-neutral-400`   Tinted neutral            Disabled controls and
                                                   subtle borders
 
-  `--color-neutral-300`   `#D5DDE5`               Borders
+  `--color-neutral-300`   Tinted neutral            Borders
 
-  `--color-neutral-200`   `#E7EDF2`               Dividers
+  `--color-neutral-200`   Tinted neutral            Dividers
 
-  `--color-neutral-100`   `#F3F6F8`               Neutral surfaces
+  `--color-neutral-100`   Tinted neutral            Neutral surfaces
 
-  `--color-neutral-50`    `#F8FAFC`               Page background
+  `--color-neutral-50`    Tinted neutral            Soft neutral surfaces
 
   `--color-success`       `#237A57`               Success feedback
 
@@ -126,15 +123,16 @@ introduce arbitrary colors per component.
   `--color-danger`        `#B83A45`               Destructive actions and
                                                   errors
 
-  `--color-info`          `#25639B`               Informational feedback
+  `--color-info`          `#0053FF`               Informational feedback
   -----------------------------------------------------------------------
 
 **Color rules**
 
--   Main public page background: `#FFFFFF` or `#F8FAFC`.
--   Main text: `#17212B`.
--   Primary button: `#25639B` with white text.
--   Dark hero surfaces may use `#102B4E` or `#163B65`.
+-   Main public page background: `#FFFFFF`.
+-   Main text: `#111111`.
+-   Primary button: `#0053FF` with white text.
+-   Hover and pressed states use darker StackPlus blue tokens.
+-   Secondary button: white background, StackPlus-blue border and text.
 -   Use soft blue backgrounds to separate sections, not to fill every
     section.
 -   Do not place low-contrast light-blue text on white.
@@ -143,23 +141,15 @@ introduce arbitrary colors per component.
 -   Status colors must always be accompanied by text or an icon; color
     alone must not communicate status.
 
-### 2.3 Gradient
+### 2.3 Gradients
 
-Gradients are optional accents, not a default background treatment.
-
-Approved examples:
-
--   Hero accent:
-    `linear-gradient(135deg, #102B4E 0%, #1D4F82 58%, #5598CA 100%)`
--   Soft blue surface:
-    `linear-gradient(135deg, #F5F9FD 0%, #EAF3FA 100%)`
-
-Do not use gradients behind every card or section.
+Do not use gradients for the StackPlus homepage or interactive controls.
+Use the solid brand blue and neutral surface tokens instead.
 
 ### 2.4 Typography
 
-Use **Plus Jakarta Sans** as the primary typeface, with a system
-sans-serif fallback.
+Use **Sora** for bold display headings and **Plus Jakarta Sans** for body
+copy and controls, with system sans-serif fallbacks.
 
   Role                Desktop     Mobile     Weight
   ---------------- ---------- ---------- ----------
@@ -317,37 +307,31 @@ not a conventional centered SaaS hero.
 
 **Desktop composition**
 
--   Two-column layout.
--   Text column: approximately `52%`.
--   Portrait/image column: approximately `48%`.
--   Minimum hero height: `620px`; do not force a fixed height if content
-    needs more room.
--   Align content vertically around the center.
--   Use a light background with restrained blue shapes or a deep-blue
-    image panel.
--   Keep the main CTA visible without scrolling on common laptop
-    viewports where possible.
+-   White, asymmetric editorial composition with the owner portrait
+    centered in the foreground and no image card or frame.
+-   Set the two-line headline in oversized display type behind/around the
+    portrait; keep the lettering legible and avoid covering its glyphs.
+-   Keep the admin-managed name and professional title, one summary
+    sentence, and both existing actions in the hero.
+-   Keep the primary action visible at common laptop viewport sizes.
 
 **Content order**
 
-1.  Small eyebrow: `CHEMICAL ENGINEERING`
-2.  Name: `Kusumawati`
-3.  Professional title: `Chemical Engineering Graduate`
-4.  Short professional summary.
-5.  Primary CTA: `Explore My Experience`
-6.  Secondary CTA: `Download CV`
-7.  Small social links: LinkedIn and Email.
+1.  Name and admin-managed professional title.
+2.  Headline: `CHEMICAL` in `#111111`, then `ENGINEERING` in `#0053FF`.
+3.  The admin-managed professional summary.
+4.  Primary CTA: `Explore experience`.
+5.  Secondary CTA: `Download CV`.
+6.  Contact link.
 
 **Portrait treatment**
 
 -   Use the actual photo supplied by the owner.
 -   Never generate a replacement face or alter identity.
 -   Prefer a portrait crop with face and upper body visible.
--   Image frame aspect ratio: approximately `4:5`.
--   Use `object-fit: cover` and a carefully selected focal point.
--   Rounded corners: `22–28px`.
--   Optional thin blue frame or soft blue backdrop.
--   Avoid excessive decorative cutouts covering the subject.
+-   Preserve the source photo and its proportions with `object-fit:
+    contain`; do not put it in a card or add a frame.
+-   Keep the actual subject clear of headline glyphs.
 -   Provide meaningful alt text.
 
 **Scientific decoration**
@@ -358,13 +342,11 @@ decorations behind content and outside the portrait's face area.
 
 **Mobile**
 
--   Stack text first, image second, unless the supplied image
-    composition strongly supports image-first.
--   Portrait width: `min(100%, 360px)`.
--   CTA buttons may stack; full-width buttons are acceptable on narrow
-    screens.
--   Keep name and title readable without overlap.
--   Avoid placing text over the face.
+-   Keep the portrait centered and scale it within the viewport.
+-   Stack the two actions at narrow widths and keep them at least 44px
+    high.
+-   Keep the name, title, and headline readable without horizontal
+    overflow or text over the face.
 
 ### 4.3 Section introduction
 
@@ -766,7 +748,7 @@ Use consistent button and status patterns throughout the dashboard.
 
   Variant     Appearance                       Usage
   ----------- -------------------------------- -------------------------
-  Primary     Blue fill, white text            Main CTA, save, publish
+  Primary     `#0053FF` fill, white text       Main CTA, save, publish
   Secondary   White fill, blue border/text     Secondary CTA
   Ghost       Transparent, neutral/blue text   Low-emphasis action
   Danger      Red fill or red text             Destructive action
@@ -779,7 +761,9 @@ Button sizing:
 -   Small: `34px` height, horizontal padding `12px`.
 -   Minimum touch target: `44px` for primary mobile interactions.
 
-Include hover, active, focus-visible, disabled, and loading states.
+Include a darker-blue hover and pressed state, a StackPlus-blue focus
+ring, neutral disabled styling, and loading states. Use the same tokens
+in shared variants and direct CTA links; do not use `transition-all`.
 
 ### 7.2 Inputs
 

@@ -47,7 +47,7 @@ export function ContactForm({ locale }: { locale: "en" | "id" }) {
       <div className="sr-only" aria-hidden="true">
         <label>Leave this field empty<input tabIndex={-1} autoComplete="off" name="website" /></label>
       </div>
-      <button disabled={state === "sending"} className="min-h-12 w-full rounded-md bg-primary-700 px-5 font-semibold text-white hover:bg-primary-800 disabled:cursor-wait disabled:opacity-70 sm:w-auto">
+      <button disabled={state === "sending"} className="btn-primary min-h-12 w-full sm:w-auto">
         {state === "sending" ? (english ? "Sending…" : "Mengirim…") : (english ? "Send message" : "Kirim pesan")}
       </button>
       <p className="min-h-6 text-sm" role="status" aria-live="polite">

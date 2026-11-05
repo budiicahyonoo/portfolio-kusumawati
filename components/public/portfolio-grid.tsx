@@ -45,7 +45,7 @@ export function PortfolioGrid({
         <div className="mb-7 flex flex-wrap gap-2" role="group" aria-label={locale === "en" ? "Filter content" : "Saring konten"}>
           {options.map((option) => (
             <button key={option} type="button" aria-pressed={selected === option} onClick={() => setSelected(option)}
-              className={`min-h-11 rounded-md border px-4 text-sm font-medium ${selected === option ? "border-primary-700 bg-primary-700 text-white" : "border-neutral-300 bg-white text-neutral-800 hover:bg-primary-50"}`}>
+              className={`min-h-11 rounded-md border px-4 text-sm font-medium ${selected === option ? "border-primary-700 bg-primary-700 text-white active:bg-primary-900" : "border-primary-700 bg-white text-primary-700 hover:bg-primary-50 hover:text-primary-800 active:bg-primary-100"}`}>
               {categoryLabels[locale][option]}
             </button>
           ))}

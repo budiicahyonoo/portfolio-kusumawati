@@ -43,15 +43,15 @@ export function DetailDialog({
               {meta && <div className="mt-2 space-y-1 text-sm text-neutral-700">{meta.filter(Boolean).map((value) => <p key={value}>{value}</p>)}</div>}
             </div>
             <Dialog.Close asChild>
-              <button type="button" aria-label="Close details" className="grid min-h-11 min-w-11 shrink-0 place-items-center rounded-md border border-neutral-300 text-xl leading-none hover:bg-neutral-50">×</button>
+              <button type="button" aria-label="Close details" className="grid min-h-11 min-w-11 shrink-0 place-items-center rounded-md border border-primary-700 text-xl leading-none text-primary-700 hover:bg-primary-50">×</button>
             </Dialog.Close>
           </div>
           {image && <img src={image} alt="" className="mb-5 max-h-[360px] w-full rounded-lg object-cover" />}
           {description && <Dialog.Description className="whitespace-pre-line text-base leading-7 text-neutral-800">{description}</Dialog.Description>}
           {children}
           <div className="mt-6 flex flex-wrap gap-3">
-            {documentUrl && <a className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary-700 px-4 font-semibold text-white hover:bg-primary-800" href={documentUrl} target="_blank" rel="noreferrer"><FileDown size={17} />{documentLabel || "Open or download"}</a>}
-            {verificationUrl && <a className="inline-flex min-h-11 items-center gap-2 rounded-md border border-primary-300 px-4 font-semibold text-primary-800 hover:bg-primary-50" href={verificationUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} />{verificationLabel || "Verification link"}</a>}
+            {documentUrl && <a className="btn-primary min-h-11 px-4" href={documentUrl} target="_blank" rel="noreferrer"><FileDown size={17} />{documentLabel || "Open or download"}</a>}
+            {verificationUrl && <a className="btn-secondary min-h-11 px-4" href={verificationUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} />{verificationLabel || "Verification link"}</a>}
           </div>
         </Dialog.Content>
       </Dialog.Portal>

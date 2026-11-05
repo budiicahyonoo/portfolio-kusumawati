@@ -1,7 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { headers } from "next/headers"
-import { Plus_Jakarta_Sans, Sora } from "next/font/google"
+import { Plus_Jakarta_Sans, Sora, Dancing_Script, Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "sonner"
 import "./globals.css"
@@ -16,6 +16,21 @@ const sora = Sora({
   subsets: ["latin"],
   variable: "--font-display-sora",
   weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+})
+
+const dancingScript = Dancing_Script({
+  subsets: ["latin"],
+  variable: "--font-dancing-script",
+  weight: ["400", "700"],
+  display: "swap",
+})
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  style: ["italic"],
+  weight: ["500"],
+  variable: "--font-serif-italic",
   display: "swap",
 })
 
@@ -76,7 +91,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} className="scroll-smooth">
       <body
-        className={`${plusJakarta.variable} ${sora.variable} font-sans antialiased`}
+        className={`${plusJakarta.variable} ${sora.variable} ${dancingScript.variable} ${playfair.variable} font-sans antialiased`}
       >
         {children}
         <Toaster position="top-right" richColors />
