@@ -5,6 +5,7 @@ import {
   Archive,
   BriefcaseBusiness,
   Check,
+  ChevronDown,
   ChevronRight,
   FileImage,
   FileText,
@@ -24,12 +25,14 @@ import {
   X,
 } from "lucide-react"
 import Link from "next/link"
+import { upload } from "@vercel/blob/client"
 
 type Field = {
   name: string
   label: string
-  kind?: "textarea" | "select" | "number"
+  kind?: "textarea" | "select" | "number" | "file" | "files"
   options?: string[]
+  accept?: string
   placeholder?: string
   required?: boolean
   wide?: boolean
@@ -55,8 +58,7 @@ const publicationFields: Field[] = [
   { name: "description_en", label: "Description in English", kind: "textarea", placeholder: "Summarize the work, credential, or contribution", wide: true },
   { name: "description_id", label: "Description in Bahasa Indonesia", kind: "textarea", placeholder: "Write an approved Indonesian description", wide: true },
   { name: "verification_url", label: "Verification link", placeholder: "https://example.com/verify" },
-  { name: "document_url", label: "Document URL", placeholder: "Paste a public document URL" },
-  { name: "document_asset_id", label: "Document asset ID", placeholder: "Paste an uploaded media asset ID" },
+  { name: "document_asset_id", label: "Dokumen pendukung", kind: "file", accept: "application/pdf" },
   { name: "document_label", label: "Document label", placeholder: "e.g. Certificate PDF" },
   { name: "status", label: "Publishing status", kind: "select", options: ["draft", "published"] },
   { name: "is_featured", label: "Featured", kind: "select", options: ["false", "true"] },
@@ -64,18 +66,16 @@ const publicationFields: Field[] = [
 ]
 
 const modules: Module[] = [
-  { id: "overview", label: "Dashboard", endpoint: "/api/dashboard", icon: LayoutDashboard },
+  { id: "overview", label: "Ringkasan", endpoint: "/api/dashboard", icon: LayoutDashboard },
   {
-    id: "profile", label: "Profile", endpoint: "/api/profile", icon: UserRound, singleton: true,
+    id: "profile", label: "Profil", endpoint: "/api/profile", icon: UserRound, singleton: true,
     fields: [
       { name: "full_name", label: "Full name", placeholder: "Enter the display name" },
       { name: "professional_title", label: "Professional title", placeholder: "e.g. Chemical Engineering Graduate" },
       { name: "summary_en", label: "Summary in English", kind: "textarea", placeholder: "Write a concise, factual professional summary", wide: true },
       { name: "summary_id", label: "Summary in Bahasa Indonesia", kind: "textarea", placeholder: "Tulis ringkasan profesional yang singkat dan faktual", wide: true },
-      { name: "photo_url", label: "Profile photo URL", placeholder: "Paste a public image URL, or use an uploaded asset" },
-      { name: "photo_asset_id", label: "Profile photo asset ID", placeholder: "Paste an uploaded media asset ID" },
-      { name: "cv_url", label: "CV URL", placeholder: "Paste a public PDF URL, or use an uploaded asset" },
-      { name: "cv_asset_id", label: "CV asset ID", placeholder: "Paste an uploaded media asset ID" },
+      { name: "photo_asset_id", label: "Foto profil", kind: "file", accept: "image/jpeg,image/png,image/gif,image/webp" },
+      { name: "cv_asset_id", label: "CV / resume", kind: "file", accept: "application/pdf" },
       { name: "email", label: "Email", placeholder: "name@example.com" },
       { name: "phone", label: "Phone", placeholder: "Include country code, e.g. +62…" },
       { name: "whatsapp", label: "WhatsApp", placeholder: "Include country code, e.g. +62…" },
@@ -84,7 +84,7 @@ const modules: Module[] = [
     ],
   },
   {
-    id: "education", label: "Education", endpoint: "/api/education", icon: GraduationCap,
+    id: "education", label: "Pendidikan", endpoint: "/api/education", icon: GraduationCap,
     fields: [
       { name: "institution", label: "Institution", placeholder: "Enter the official institution name", required: true },
       { name: "degree", label: "Degree", placeholder: "e.g. Bachelor's degree", required: true },
@@ -97,16 +97,16 @@ const modules: Module[] = [
       { name: "academic_focus_id", label: "Academic focus in Bahasa Indonesia", placeholder: "Jelaskan bidang studi" },
       { name: "description_en", label: "Description in English", kind: "textarea", placeholder: "Summarize this education record", wide: true },
       { name: "description_id", label: "Description in Bahasa Indonesia", kind: "textarea", placeholder: "Tulis ringkasan pendidikan yang telah diverifikasi", wide: true },
-      { name: "logo_url", label: "Logo URL", placeholder: "Paste a public image URL, if available" },
-      { name: "media_asset_ids", label: "Documentation asset IDs, comma separated", placeholder: "Paste uploaded asset IDs separated by commas" },
+      { name: "logo_url", label: "Logo institusi", kind: "file", accept: "image/jpeg,image/png,image/gif,image/webp" },
+      { name: "media_asset_ids", label: "Dokumen atau foto pendukung", kind: "files", accept: "image/jpeg,image/png,image/gif,image/webp,application/pdf" },
       { name: "status", label: "Publishing status", kind: "select", options: ["draft", "published"] },
       { name: "sort_order", label: "Sort order", kind: "number", placeholder: "0" },
     ],
   },
   {
-    id: "academic-projects", label: "Academic projects", endpoint: "/api/academic-projects", icon: FileText,
+    id: "academic-projects", label: "Proyek akademik", endpoint: "/api/academic-projects", icon: FileText,
     fields: [
-      { name: "education_id", label: "Education record ID", placeholder: "Paste the linked education record ID, if applicable" },
+      { name: "education_id", label: "Pendidikan terkait", kind: "select" },
       { name: "title_en", label: "Title in English", placeholder: "Enter the project title", required: true },
       { name: "title_id", label: "Title in Bahasa Indonesia", placeholder: "Enter the official title or approved translation" },
       { name: "summary_en", label: "Summary in English", kind: "textarea", placeholder: "Summarize the project and its purpose", wide: true },
@@ -114,15 +114,15 @@ const modules: Module[] = [
       { name: "description_en", label: "Details in English", kind: "textarea", placeholder: "Describe methods, scope, and outcomes", wide: true },
       { name: "description_id", label: "Details in Bahasa Indonesia", kind: "textarea", placeholder: "Jelaskan metode, ruang lingkup, dan hasil", wide: true },
       { name: "research_area", label: "Research area", placeholder: "e.g. Process engineering" },
-      { name: "cover_image_url", label: "Cover image URL", placeholder: "Paste a public image URL, if available" },
-      { name: "media_asset_ids", label: "Reusable media asset IDs, comma separated", placeholder: "Paste uploaded asset IDs separated by commas" },
+      { name: "cover_image_url", label: "Gambar sampul", kind: "file", accept: "image/jpeg,image/png,image/gif,image/webp" },
+      { name: "media_asset_ids", label: "Foto atau dokumen proyek", kind: "files", accept: "image/jpeg,image/png,image/gif,image/webp,application/pdf" },
       { name: "status", label: "Publishing status", kind: "select", options: ["draft", "published"] },
       { name: "is_featured", label: "Featured", kind: "select", options: ["false", "true"] },
       { name: "sort_order", label: "Sort order", kind: "number", placeholder: "0" },
     ],
   },
   {
-    id: "experience", label: "Experience", endpoint: "/api/experiences", icon: BriefcaseBusiness,
+    id: "experience", label: "Pengalaman", endpoint: "/api/experiences", icon: BriefcaseBusiness,
     fields: [
       { name: "category", label: "Category", kind: "select", options: ["Work", "Internship", "Speaker"], required: true },
       { name: "organization", label: "Organization", placeholder: "Enter the organization name", required: true },
@@ -136,19 +136,17 @@ const modules: Module[] = [
       { name: "responsibilities_en", label: "Responsibilities in English", kind: "textarea", placeholder: "List responsibilities and contributions", wide: true },
       { name: "responsibilities_id", label: "Responsibilities in Bahasa Indonesia", kind: "textarea", placeholder: "Tuliskan tanggung jawab dan kontribusi", wide: true },
       { name: "technical_skills", label: "Technical skills, comma separated", placeholder: "e.g. HPLC, process analysis" },
-      { name: "gallery_asset_ids", label: "Gallery asset IDs, comma separated", placeholder: "Paste uploaded asset IDs separated by commas" },
-      { name: "document_asset_ids", label: "Document asset IDs, comma separated", placeholder: "Paste uploaded asset IDs separated by commas" },
-      { name: "logo_url", label: "Logo URL", placeholder: "Paste a public image URL, if available" },
+      { name: "gallery_asset_ids", label: "Foto pengalaman", kind: "files", accept: "image/jpeg,image/png,image/gif,image/webp" },
+      { name: "document_asset_ids", label: "Dokumen pengalaman", kind: "files", accept: "application/pdf" },
+      { name: "logo_url", label: "Logo organisasi", kind: "file", accept: "image/jpeg,image/png,image/gif,image/webp" },
       { name: "status", label: "Publishing status", kind: "select", options: ["draft", "published"] },
       { name: "is_featured", label: "Featured", kind: "select", options: ["false", "true"] },
       { name: "sort_order", label: "Sort order", kind: "number", placeholder: "0" },
     ],
   },
-  { id: "certifications", label: "Certifications", endpoint: "/api/certifications", icon: ShieldCheck, fields: publicationFields },
-  { id: "publications", label: "Publications", endpoint: "/api/certifications", icon: FileText, category: "Journal", fields: publicationFields },
-  { id: "patents", label: "Patents", endpoint: "/api/certifications", icon: FileText, category: "Patent", fields: publicationFields },
+  { id: "credentials", label: "Sertifikasi & riset", endpoint: "/api/certifications", icon: ShieldCheck, fields: publicationFields },
   {
-    id: "organizations", label: "Organizations", endpoint: "/api/organizations", icon: UsersRound,
+    id: "organizations", label: "Organisasi", endpoint: "/api/organizations", icon: UsersRound,
     fields: [
       { name: "name", label: "Organization", placeholder: "Enter the official organization name", required: true },
       { name: "role_en", label: "Role in English", placeholder: "Enter your role", required: true },
@@ -160,20 +158,16 @@ const modules: Module[] = [
       { name: "description_id", label: "Description in Bahasa Indonesia", kind: "textarea", placeholder: "Jelaskan organisasi secara singkat", wide: true },
       { name: "contribution_en", label: "Contribution in English", kind: "textarea", placeholder: "Describe your verified contribution", wide: true },
       { name: "contribution_id", label: "Contribution in Bahasa Indonesia", kind: "textarea", placeholder: "Jelaskan kontribusi yang telah diverifikasi", wide: true },
-      { name: "logo_url", label: "Logo URL", placeholder: "Paste a public image URL, if available" },
+      { name: "logo_url", label: "Logo organisasi", kind: "file", accept: "image/jpeg,image/png,image/gif,image/webp" },
       { name: "status", label: "Publishing status", kind: "select", options: ["draft", "published"] },
       { name: "is_featured", label: "Featured", kind: "select", options: ["false", "true"] },
       { name: "sort_order", label: "Sort order", kind: "number", placeholder: "0" },
     ],
   },
-  { id: "media", label: "Media library", endpoint: "/api/upload", icon: FileImage },
+  { id: "media", label: "Pustaka berkas", endpoint: "/api/upload", icon: FileImage },
+  { id: "messages", label: "Pesan masuk", endpoint: "/api/messages", icon: Mail },
   {
-    id: "documents", label: "CV & documents", endpoint: "/api/upload", icon: FileText,
-    fields: [],
-  },
-  { id: "messages", label: "Contact messages", endpoint: "/api/messages", icon: Mail },
-  {
-    id: "contact", label: "Contact settings", endpoint: "/api/contact-info", icon: Mail, singleton: true,
+    id: "contact", label: "Info kontak", endpoint: "/api/contact-info", icon: Mail, singleton: true,
     fields: [
       { name: "name", label: "Name", placeholder: "Enter the public contact name" },
       { name: "email", label: "Email", placeholder: "name@example.com" },
@@ -183,7 +177,7 @@ const modules: Module[] = [
     ],
   },
   {
-    id: "settings", label: "Website settings", endpoint: "/api/settings", icon: Settings, singleton: true,
+    id: "settings", label: "Pengaturan situs", endpoint: "/api/settings", icon: Settings, singleton: true,
     fields: [
       { name: "website_title", label: "Website title", placeholder: "Enter the public website title" },
       { name: "website_description", label: "Website description", kind: "textarea", placeholder: "Write a concise description for visitors and search results", wide: true },
@@ -192,28 +186,34 @@ const modules: Module[] = [
       { name: "hero_cta_secondary", label: "Secondary hero action", placeholder: "e.g. Contact me" },
       { name: "seo_title", label: "SEO title", placeholder: "Enter the title shown in search results" },
       { name: "seo_description", label: "SEO description", kind: "textarea", placeholder: "Summarize this portfolio for search results", wide: true },
-      { name: "og_image_url", label: "Open Graph image URL", placeholder: "Paste a public image URL" },
+      { name: "og_image_url", label: "Gambar pratinjau situs", kind: "file", accept: "image/jpeg,image/png,image/gif,image/webp" },
       { name: "footer_text", label: "Footer text", placeholder: "Enter a short footer note" },
     ],
   },
 ]
 
 const initialContent: Record<string, string> = {
-  overview: "A current view of your published portfolio content and incoming messages.",
-  profile: "Manage the details shown in the public profile and homepage.",
-  education: "Manage education records. New records stay in draft until published.",
-  "academic-projects": "Manage academic projects linked to education records.",
-  experience: "Manage work, internship, and speaker experience.",
-  certifications: "Manage certifications and technical training.",
-  publications: "Manage journal publications.",
-  patents: "Manage patent publications.",
-  organizations: "Manage organization roles and contributions.",
-  media: "Upload and reuse approved images and PDF documents.",
-  documents: "Manage CV and supporting documents in the media library.",
-  messages: "Review messages submitted through the public contact form.",
-  contact: "Manage the public contact methods.",
-  settings: "Configure public site title, language, SEO, and CTA labels.",
+  overview: "Ringkasan konten portofolio yang sudah tayang dan pesan yang masuk.",
+  profile: "Kelola profil. Foto dan CV diunggah langsung; tautan aset akan disimpan otomatis.",
+  education: "Kelola pendidikan dan unggah foto atau dokumen pendukung.",
+  "academic-projects": "Kelola proyek akademik dan pilih pendidikan terkait tanpa memasukkan ID.",
+  experience: "Kelola pengalaman kerja, magang, dan pembicara beserta file pendukung.",
+  credentials: "Kelola sertifikasi, pelatihan, publikasi, dan paten dalam satu daftar.",
+  organizations: "Kelola peran organisasi dan unggah logo atau media pendukung.",
+  media: "Simpan dan gunakan ulang foto serta dokumen. Maksimal 5 MB per file.",
+  messages: "Tinjau pesan yang dikirim melalui formulir kontak di situs publik.",
+  contact: "Atur informasi kontak yang ditampilkan di situs.",
+  settings: "Atur judul situs, bahasa, SEO, dan teks tombol.",
 }
+
+const navigationGroups = [
+  { label: "Ringkasan", moduleIds: ["overview"] },
+  { label: "Portofolio", moduleIds: ["profile", "education", "academic-projects", "experience", "credentials", "organizations"] },
+  { label: "Media & pesan", moduleIds: ["media", "messages"] },
+  { label: "Pengaturan situs", moduleIds: ["contact", "settings"] },
+]
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024
 
 function getTitle(item: Record<string, unknown>, fields?: Field[]) {
   const keys = ["title_en", "position_en", "institution", "name", "full_name", "filename", "subject"]
@@ -221,17 +221,49 @@ function getTitle(item: Record<string, unknown>, fields?: Field[]) {
     if (typeof item[key] === "string" && item[key]) return item[key] as string
   }
   if (typeof item.category === "string") return item.category
-  return String(item.id ?? fields?.[0]?.label ?? "Untitled")
+  return String(fields?.[0]?.label ?? "Untitled")
 }
 
-function AdminInput({ field, value, onChange }: { field: Field; value: unknown; onChange: (value: string) => void }) {
+function AdminInput({
+  field,
+  value,
+  onChange,
+  files = [],
+  onFilesChange,
+  relationOptions = [],
+}: {
+  field: Field
+  value: unknown
+  onChange: (value: string) => void
+  files?: File[]
+  onFilesChange?: (files: File[]) => boolean
+  relationOptions?: { value: string; label: string }[]
+}) {
   const inputClass = "min-h-11 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
   return (
     <label className={field.wide ? "sm:col-span-2" : ""}>
       <span className="mb-1.5 block text-sm font-medium text-neutral-800">
         {field.label}{field.required ? <span aria-hidden="true"> *</span> : null}
       </span>
-      {field.kind === "textarea" ? (
+      {field.kind === "file" || field.kind === "files" ? (
+        <div>
+          <input
+            className="block min-h-11 w-full text-sm file:mr-3 file:min-h-10 file:rounded-md file:border-0 file:bg-neutral-100 file:px-3 file:font-medium"
+            type="file"
+            accept={field.accept}
+            multiple={field.kind === "files"}
+            onChange={(event) => {
+              const selected = Array.from(event.target.files ?? [])
+              if (onFilesChange?.(selected) === false) event.currentTarget.value = ""
+            }}
+          />
+          <p className="mt-1 text-xs text-neutral-600">
+            {field.kind === "files" ? "File baru ditambahkan saat formulir disimpan." : "Pilih file baru untuk mengganti file tersimpan."}
+            {" "}Maksimal 5 MB per file.
+          </p>
+          {files.length > 0 && <p className="mt-1 break-all text-xs text-primary-800">{files.map((file) => file.name).join(", ")}</p>}
+        </div>
+      ) : field.kind === "textarea" ? (
         <textarea
           className={`${inputClass} min-h-28 resize-y`}
           value={String(value ?? "")}
@@ -242,11 +274,13 @@ function AdminInput({ field, value, onChange }: { field: Field; value: unknown; 
       ) : field.kind === "select" ? (
         <select
           className={inputClass}
-          value={String(value ?? field.options?.[0] ?? "")}
+          value={String(value ?? (field.name === "education_id" ? "" : field.options?.[0] ?? ""))}
           onChange={(event) => onChange(event.target.value)}
           required={field.required}
         >
+          {field.name === "education_id" && <option value="">Tidak terkait dengan pendidikan tertentu</option>}
           {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
+          {relationOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
       ) : (
         <input
@@ -266,7 +300,7 @@ function createNewItem(module: Module): Record<string, unknown> {
   const values = Object.fromEntries(
     (module.fields ?? []).map((field) => [
       field.name,
-      field.kind === "select" ? field.options?.[0] ?? "" : "",
+      field.kind === "select" ? field.options?.[0] ?? "" : field.kind === "files" ? [] : "",
     ]),
   )
 
@@ -284,6 +318,9 @@ export default function PortfolioDashboard() {
   const [items, setItems] = useState<Record<string, unknown>[]>([])
   const [singleton, setSingleton] = useState<Record<string, unknown>>({})
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
+  const [pendingFiles, setPendingFiles] = useState<Record<string, File[]>>({})
+  const [educationOptions, setEducationOptions] = useState<{ value: string; label: string }[]>([])
+  const [openGroup, setOpenGroup] = useState("Ringkasan")
   const [search, setSearch] = useState("")
   const [mobileOpen, setMobileOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -319,14 +356,20 @@ export default function PortfolioDashboard() {
         setOverview(await request(active.endpoint))
       } else if (active.id === "messages") {
         setItems(await request(active.endpoint))
-      } else if (active.id === "media" || active.id === "documents") {
-        const type = active.id === "documents" ? "?type=pdf" : ""
-        setItems(await request(`${active.endpoint}${type}`))
+      } else if (active.id === "media") {
+        setItems(await request(active.endpoint))
       } else if (active.singleton) {
         const value = await request(active.endpoint)
         setSingleton(value ?? {})
         setEditing(value ?? {})
       } else {
+        if (active.id === "academic-projects") {
+          const educations = await request("/api/education?admin=true") as Record<string, unknown>[]
+          setEducationOptions(educations.map((education) => ({
+            value: String(education.id),
+            label: `${String(education.institution)} — ${String(education.degree)}`,
+          })))
+        }
         const query = active.category ? `?admin=true&category=${active.category}` : "?admin=true"
         setItems(await request(`${active.endpoint}${query}`))
       }
@@ -352,23 +395,39 @@ export default function PortfolioDashboard() {
     const values: Record<string, unknown> = { ...item }
     if (active.id === "education") {
       const media = Array.isArray(item.media) ? item.media as Record<string, unknown>[] : []
-      values.media_asset_ids = media.map((entry) => entry.asset_id).filter(Boolean).join(", ")
+      values.media_asset_ids = media.map((entry) => entry.asset_id).filter((id): id is string => typeof id === "string")
     }
     if (active.id === "academic-projects") {
       const media = Array.isArray(item.media) ? item.media as Record<string, unknown>[] : []
-      values.media_asset_ids = media.map((entry) => entry.asset_id).filter(Boolean).join(", ")
+      values.media_asset_ids = media.map((entry) => entry.asset_id).filter((id): id is string => typeof id === "string")
     }
     if (active.id === "experience") {
       const gallery = Array.isArray(item.gallery) ? item.gallery as Record<string, unknown>[] : []
       const documents = Array.isArray(item.documents) ? item.documents as Record<string, unknown>[] : []
-      values.gallery_asset_ids = gallery.map((entry) => entry.asset_id).filter(Boolean).join(", ")
-      values.document_asset_ids = documents.map((entry) => entry.asset_id).filter(Boolean).join(", ")
+      values.gallery_asset_ids = gallery.map((entry) => entry.asset_id).filter((id): id is string => typeof id === "string")
+      values.document_asset_ids = documents.map((entry) => entry.asset_id).filter((id): id is string => typeof id === "string")
     }
     if (active.id === "organizations") {
       const media = Array.isArray(item.media) ? item.media as Record<string, unknown>[] : []
-      values.media_asset_ids = media.map((entry) => entry.asset_id).filter(Boolean).join(", ")
+      values.media_asset_ids = media.map((entry) => entry.asset_id).filter((id): id is string => typeof id === "string")
     }
+    setPendingFiles({})
     setEditing(values)
+  }
+
+  async function uploadMediaFile(file: File) {
+    const safeName = file.name
+      .replace(/[\\/]/g, "")
+      .replace(/[^\p{L}\p{N}._ -]/gu, "")
+      .trim()
+      .slice(0, 180) || "upload"
+    const blob = await upload(`portfolio/${Date.now()}-${safeName}`, file, {
+      access: "public",
+      handleUploadUrl: "/api/upload",
+      contentType: file.type,
+      clientPayload: JSON.stringify({ originalFilename: file.name, mimeType: file.type }),
+    })
+    return request(`/api/upload?url=${encodeURIComponent(blob.url)}`)
   }
 
   async function save(event: FormEvent) {
@@ -380,17 +439,39 @@ export default function PortfolioDashboard() {
     if (active.category) data.category = active.category
     for (const field of active.fields ?? []) {
       if (field.kind === "number" && data[field.name] !== undefined) data[field.name] = Number(data[field.name]) || 0
+      if (field.name === "education_id" && data[field.name] === "") data[field.name] = null
       if (field.name === "is_featured") data[field.name] = data[field.name] === true || data[field.name] === "true"
       if (field.name === "technical_skills" && typeof data[field.name] === "string") {
         const skills = data[field.name]
         data[field.name] = typeof skills === "string" ? skills.split(",").map((value) => value.trim()).filter(Boolean) : []
       }
-      if (field.name.endsWith("_asset_ids") && typeof data[field.name] === "string") {
-        const ids = data[field.name]
-        data[field.name] = typeof ids === "string" ? ids.split(",").map((value) => value.trim()).filter(Boolean) : []
+      if (field.name.endsWith("_asset_ids") && !Array.isArray(data[field.name])) {
+        data[field.name] = []
       }
     }
     try {
+      for (const field of active.fields ?? []) {
+        const selected = pendingFiles[field.name] ?? []
+        if (selected.length === 0) continue
+        const assets = await Promise.all(selected.map(uploadMediaFile)) as Record<string, unknown>[]
+        if (field.kind === "files") {
+          const existingIds = Array.isArray(data[field.name]) ? data[field.name] as unknown[] : []
+          data[field.name] = [
+            ...existingIds.filter((id): id is string => typeof id === "string"),
+            ...assets.map((asset) => String(asset.id)),
+          ]
+        } else if (field.name.endsWith("_asset_id")) {
+          data[field.name] = assets[0]?.id
+        } else {
+          data[field.name] = assets[0]?.url
+        }
+      }
+      if (active.id === "profile") {
+        data.photo_url = null
+        data.cv_url = null
+      }
+      if (active.id === "credentials") data.document_url = null
+
       if (active.singleton) {
         await request(active.endpoint, { method: "PUT", body: JSON.stringify(data) })
       } else if (editing.id) {
@@ -400,6 +481,7 @@ export default function PortfolioDashboard() {
       }
       setMessage("Saved successfully.")
       setEditing(active.singleton ? data : null)
+      setPendingFiles({})
       await load()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not save changes.")
@@ -425,13 +507,7 @@ export default function PortfolioDashboard() {
     setSaving(true)
     setMessage("")
     try {
-      const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}&mimeType=${encodeURIComponent(file.type)}`, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      })
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.error || "Upload failed.")
+      await uploadMediaFile(file)
       setFile(null)
       setMessage("Upload complete.")
       await load()
@@ -481,14 +557,47 @@ export default function PortfolioDashboard() {
           <button type="button" className="rounded-md p-2 lg:hidden" aria-label="Close navigation" onClick={() => setMobileOpen(false)}><X size={18} /></button>
         </div>
         <nav className="flex h-[calc(100%-68px)] flex-col overflow-y-auto p-3" aria-label="Admin navigation">
-          <div className="space-y-1">
-            {modules.map((module) => {
-              const Icon = module.icon
+          <div className="space-y-2">
+            {navigationGroups.map((group) => {
+              const expanded = openGroup === group.label
+              const groupModules = group.moduleIds
+                .map((id) => modules.find((module) => module.id === id))
+                .filter((module): module is Module => Boolean(module))
               return (
-                <button key={module.id} type="button" onClick={() => { setActiveId(module.id); setEditing(null); setSearch(""); setFile(null); setMobileOpen(false) }} aria-current={activeId === module.id ? "page" : undefined}
-                  className={`flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-sm ${activeId === module.id ? "bg-primary-100 font-semibold text-primary-800" : "text-neutral-700 hover:bg-neutral-100"}`}>
-                  <Icon size={18} aria-hidden="true" />{module.label}
-                </button>
+                <section key={group.label}>
+                  <button
+                    type="button"
+                    className="flex min-h-10 w-full items-center justify-between rounded-md px-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500 hover:bg-neutral-100"
+                    aria-expanded={expanded}
+                    onClick={() => setOpenGroup(expanded ? "" : group.label)}
+                  >
+                    {group.label}
+                    <ChevronDown size={16} aria-hidden="true" className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
+                  </button>
+                  {expanded && <div className="space-y-1">
+                    {groupModules.map((module) => {
+                      const Icon = module.icon
+                      return (
+                        <button
+                          key={module.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveId(module.id)
+                            setEditing(null)
+                            setPendingFiles({})
+                            setSearch("")
+                            setFile(null)
+                            setMobileOpen(false)
+                          }}
+                          aria-current={activeId === module.id ? "page" : undefined}
+                          className={`flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-sm ${activeId === module.id ? "bg-primary-100 font-semibold text-primary-800" : "text-neutral-700 hover:bg-neutral-100"}`}
+                        >
+                          <Icon size={18} aria-hidden="true" />{module.label}
+                        </button>
+                      )
+                    })}
+                  </div>}
+                </section>
               )
             })}
           </div>
@@ -545,7 +654,25 @@ export default function PortfolioDashboard() {
               {loading ? <p role="status">Loading settings…</p> : (
                 <>
                   <div className="grid gap-5 sm:grid-cols-2">
-                    {active.fields.map((field) => <AdminInput key={field.name} field={field} value={editing?.[field.name] ?? singleton[field.name]} onChange={(value) => updateField(field, value)} />)}
+                    {active.fields.map((field) => (
+                      <AdminInput
+                        key={field.name}
+                        field={field}
+                        value={editing?.[field.name] ?? singleton[field.name]}
+                        files={pendingFiles[field.name]}
+                        relationOptions={field.name === "education_id" ? educationOptions : []}
+                        onFilesChange={(files) => {
+                          if (files.some((selected) => selected.size > MAX_FILE_SIZE)) {
+                            setMessage("Ukuran file maksimal 5 MB.")
+                            return false
+                          }
+                          setMessage("")
+                          setPendingFiles((current) => ({ ...current, [field.name]: files }))
+                          return true
+                        }}
+                        onChange={(value) => updateField(field, value)}
+                      />
+                    ))}
                   </div>
                   <button disabled={saving} className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-md bg-primary-700 px-5 font-semibold text-white hover:bg-primary-800 disabled:opacity-60">
                     <Check size={17} />{saving ? "Saving…" : "Save changes"}
@@ -555,11 +682,21 @@ export default function PortfolioDashboard() {
             </form>
           )}
 
-          {(active.id === "media" || active.id === "documents") && (
+          {active.id === "media" && (
             <section>
               <form onSubmit={uploadFile} className="mb-6 flex flex-col gap-3 rounded-lg border border-dashed border-primary-300 bg-white p-5 sm:flex-row sm:items-center">
-                <label className="flex-1 text-sm font-medium">Choose a JPEG, PNG, GIF, WebP, or PDF (maximum 10 MB)
-                  <input className="mt-2 block w-full text-sm" type="file" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+                <label className="flex-1 text-sm font-medium">Pilih foto atau PDF (maksimal 5 MB)
+                  <input className="mt-2 block w-full text-sm" type="file" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf" onChange={(event) => {
+                    const selected = event.target.files?.[0] ?? null
+                    if (selected && selected.size > MAX_FILE_SIZE) {
+                      setMessage("Ukuran file maksimal 5 MB.")
+                      event.currentTarget.value = ""
+                      setFile(null)
+                      return
+                    }
+                    setMessage("")
+                    setFile(selected)
+                  }} />
                 </label>
                 <button disabled={!file || saving} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary-700 px-5 font-semibold text-white disabled:opacity-50"><Upload size={17} />{saving ? "Uploading…" : "Upload asset"}</button>
               </form>
@@ -593,20 +730,38 @@ export default function PortfolioDashboard() {
             </section>
           )}
 
-          {!active.singleton && !["overview", "media", "documents", "messages"].includes(active.id) && (
+          {!active.singleton && !["overview", "media", "messages"].includes(active.id) && (
             <section>
               {editing && (
                 <form onSubmit={save} className="mb-6 rounded-lg border border-neutral-200 bg-white p-5 sm:p-7">
                   <div className="mb-5 flex items-center justify-between">
                     <h2 className="font-semibold">{editing.id ? "Edit item" : `Add ${active.label.toLowerCase()}`}</h2>
-                    <button type="button" className="rounded-md p-2" aria-label="Close editor" onClick={() => setEditing(null)}><X size={18} /></button>
+                    <button type="button" className="rounded-md p-2" aria-label="Close editor" onClick={() => { setEditing(null); setPendingFiles({}) }}><X size={18} /></button>
                   </div>
                   <div className="grid gap-5 sm:grid-cols-2">
-                    {editableFields.filter((field) => !field.hidden).map((field) => <AdminInput key={field.name} field={field} value={editing?.[field.name]} onChange={(value) => updateField(field, value)} />)}
+                    {editableFields.filter((field) => !field.hidden).map((field) => (
+                      <AdminInput
+                        key={field.name}
+                        field={field}
+                        value={editing?.[field.name]}
+                        files={pendingFiles[field.name]}
+                        relationOptions={field.name === "education_id" ? educationOptions : []}
+                        onFilesChange={(files) => {
+                          if (files.some((selected) => selected.size > MAX_FILE_SIZE)) {
+                            setMessage("Ukuran file maksimal 5 MB.")
+                            return false
+                          }
+                          setMessage("")
+                          setPendingFiles((current) => ({ ...current, [field.name]: files }))
+                          return true
+                        }}
+                        onChange={(value) => updateField(field, value)}
+                      />
+                    ))}
                   </div>
                   <div className="mt-6 flex flex-wrap gap-3">
                     <button disabled={saving} className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary-700 px-5 font-semibold text-white hover:bg-primary-800 disabled:opacity-60"><Check size={17} />{saving ? "Saving…" : "Save"}</button>
-                    <button type="button" onClick={() => setEditing(null)} className="min-h-11 rounded-md border border-neutral-300 px-5 font-medium hover:bg-neutral-50">Cancel</button>
+                    <button type="button" onClick={() => { setEditing(null); setPendingFiles({}) }} className="min-h-11 rounded-md border border-neutral-300 px-5 font-medium hover:bg-neutral-50">Cancel</button>
                   </div>
                 </form>
               )}
@@ -615,7 +770,7 @@ export default function PortfolioDashboard() {
                   <Search size={17} aria-hidden="true" className="text-neutral-600" />
                   <input aria-label={`Search ${active.label}`} className="w-full outline-none" placeholder={`Search ${active.label.toLowerCase()}`} value={search} onChange={(event) => setSearch(event.target.value)} />
                 </label>
-                <button type="button" onClick={() => setEditing(createNewItem(active))} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary-700 px-5 font-semibold text-white hover:bg-primary-800"><Plus size={18} />Add new</button>
+                <button type="button" onClick={() => { setPendingFiles({}); setEditing(createNewItem(active)) }} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary-700 px-5 font-semibold text-white hover:bg-primary-800"><Plus size={18} />Add new</button>
               </div>
               {loading ? <p role="status">Loading {active.label.toLowerCase()}…</p> : filteredItems.length === 0 ? <EmptyState /> : (
                 <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
@@ -669,7 +824,6 @@ function AssetList({ items, loading, onDelete, onSearch, onUpdate, search }: {
                 <p className="break-all font-medium">{String(item.original_filename || item.filename)}</p>
                 <p className="mt-1 text-xs text-neutral-600">Type: {String(item.mime_type)}</p>
                 {typeof item.file_size === "number" && <p className="text-xs text-neutral-600">Size: {(item.file_size / 1024 / 1024).toFixed(2)} MB</p>}
-                <p className="mt-2 break-all text-xs text-neutral-600">Asset ID: {String(item.id)}</p>
                 <form className="mt-3 space-y-3" onSubmit={(event) => {
                   event.preventDefault()
                   const formData = new FormData(event.currentTarget)
@@ -679,16 +833,14 @@ function AssetList({ items, loading, onDelete, onSearch, onUpdate, search }: {
                     description: String(formData.get("description") || ""),
                   })
                 }}>
-                  <label className="block text-xs font-medium">Filename<input name="filename" defaultValue={String(item.filename || "")} placeholder="Enter a descriptive filename" className="mt-1 min-h-10 w-full rounded-md border border-neutral-300 px-2 text-sm" /></label>
-                  <label className="block text-xs font-medium">Alt text<input name="alt_text" defaultValue={String(item.alt_text || "")} placeholder="Describe the image for screen reader users" className="mt-1 min-h-10 w-full rounded-md border border-neutral-300 px-2 text-sm" /></label>
-                  <label className="block text-xs font-medium">Description<textarea name="description" defaultValue={String(item.description || "")} placeholder="Add a short note to help identify this asset" className="mt-1 min-h-20 w-full rounded-md border border-neutral-300 px-2 py-1 text-sm" /></label>
-                  <button className="min-h-10 rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-50">Save details</button>
+                  <label className="block text-xs font-medium">Nama file<input name="filename" defaultValue={String(item.filename || "")} placeholder="Nama yang mudah dikenali" className="mt-1 min-h-10 w-full rounded-md border border-neutral-300 px-2 text-sm" /></label>
+                  <label className="block text-xs font-medium">Teks alternatif<input name="alt_text" defaultValue={String(item.alt_text || "")} placeholder="Deskripsikan gambar untuk pembaca layar" className="mt-1 min-h-10 w-full rounded-md border border-neutral-300 px-2 text-sm" /></label>
+                  <label className="block text-xs font-medium">Keterangan<textarea name="description" defaultValue={String(item.description || "")} placeholder="Catatan singkat untuk mengenali file" className="mt-1 min-h-20 w-full rounded-md border border-neutral-300 px-2 py-1 text-sm" /></label>
+                  <button className="min-h-10 rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-50">Simpan keterangan</button>
                 </form>
                 <div className="mt-3 flex gap-2">
-                  <a className="min-h-10 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50" href={String(item.url)} target="_blank" rel="noreferrer">Open</a>
-                  <button type="button" className="min-h-10 rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-50" onClick={() => void navigator.clipboard?.writeText(String(item.id))}>Copy ID</button>
-                  <button type="button" className="min-h-10 rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-50" onClick={() => void navigator.clipboard?.writeText(String(item.url))}>Copy URL</button>
-                  <button type="button" className="inline-flex min-h-10 items-center gap-2 rounded-md border border-red-200 px-3 text-sm text-danger hover:bg-red-50" onClick={() => onDelete(item)}><Trash2 size={15} />Delete</button>
+                  <a className="min-h-10 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50" href={String(item.url)} target="_blank" rel="noreferrer">{String(item.file_type) === "image" ? "Lihat foto" : "Buka dokumen"}</a>
+                  <button type="button" className="inline-flex min-h-10 items-center gap-2 rounded-md border border-red-200 px-3 text-sm text-danger hover:bg-red-50" onClick={() => onDelete(item)}><Trash2 size={15} />Hapus</button>
                 </div>
               </div>
             </li>

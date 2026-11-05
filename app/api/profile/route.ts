@@ -4,7 +4,9 @@ import { requireAdmin } from '@/lib/auth'
 
 export async function GET() {
   try {
-    const profile = await prisma.profile.findFirst()
+    const profile = await prisma.profile.findFirst({
+      include: { photo_asset: true, cv_asset: true },
+    })
     return NextResponse.json(profile || null)
   } catch (error) {
     console.error('[PROFILE GET]', error)
@@ -34,8 +36,8 @@ export async function PUT(request: Request) {
       professional_title: professional_title ?? existing?.professional_title ?? 'Chemical Engineering Graduate',
       summary_en: summary_en ?? existing?.summary_en ?? '',
       summary_id: summary_id ?? existing?.summary_id ?? '',
-      photo_url: photo_url === '' ? null : photo_url ?? existing?.photo_url ?? null,
-      cv_url: cv_url === '' ? null : cv_url ?? existing?.cv_url ?? null,
+      photo_url: photo_asset_id ? null : photo_url === '' ? null : photo_url ?? existing?.photo_url ?? null,
+      cv_url: cv_asset_id ? null : cv_url === '' ? null : cv_url ?? existing?.cv_url ?? null,
       email: email ?? existing?.email ?? null,
       phone: phone ?? existing?.phone ?? null,
       whatsapp: whatsapp ?? existing?.whatsapp ?? null,

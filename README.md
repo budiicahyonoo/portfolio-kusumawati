@@ -375,7 +375,7 @@ Pastikan file `.env` berada di root project dan berisi connection string Postgre
 ### Upload media gagal
 
 - Pastikan Vercel Blob store tersedia dan `BLOB_READ_WRITE_TOKEN` sudah diset pada environment aktif.
-- Pastikan file termasuk jenis yang diizinkan dan tidak melebihi 10 MB.
+- Pastikan file termasuk jenis yang diizinkan dan tidak melebihi 5 MB.
 - Periksa server logs tanpa menyalin token atau informasi sensitif ke laporan.
 
 ### Build Vercel berhasil tetapi halaman/API gagal saat runtime
