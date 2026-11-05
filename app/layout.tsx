@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Sora, Plus_Jakarta_Sans } from "next/font/google"
+import { headers } from "next/headers"
+import { Plus_Jakarta_Sans, Sora } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "sonner"
 import "./globals.css"
@@ -8,57 +9,56 @@ import "./globals.css"
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-plus-jakarta-sans",
+  display: "swap",
 })
 
 const sora = Sora({
   subsets: ["latin"],
   variable: "--font-display-sora",
   weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://budicahyono.my.id"),
-  title: "Budi Cahyono | Software Engineer, Full Stack Developer & AI Engineer",
+  title: "Kusumawati | Chemical Engineering Graduate",
   description:
-    "Portfolio resmi Budi Cahyono — Software Engineer, Full Stack Developer, dan AI Engineer. Spesialisasi dalam pengembangan aplikasi web scalable, integrasi Generative AI, RAG pipeline, dan arsitektur Agentic AI.",
+    "Personal portfolio of Kusumawati — Chemical Engineering Graduate from University of Lampung. Experience in research, laboratory analysis, process engineering, and R&D at BRIN.",
   keywords: [
-    "Budi Cahyono",
-    "Software Engineer",
-    "Full Stack Developer",
-    "AI Engineer",
-    "React",
-    "Next.js",
-    "Python",
-    "PyTorch",
-    "RAG Pipeline",
-    "Agentic AI",
-    "Jakarta",
-    "Indonesia"
+    "Kusumawati",
+    "Chemical Engineering",
+    "Chemical Engineer",
+    "Research Assistant",
+    "Laboratory Analyst",
+    "BRIN",
+    "University of Lampung",
+    "Teknik Kimia",
+    "Bandar Lampung",
+    "Indonesia",
   ],
-  authors: [{ name: "Budi Cahyono", url: "https://budicahyono.my.id" }],
-  creator: "Budi Cahyono",
+  authors: [{ name: "Kusumawati" }],
+  creator: "Kusumawati",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://budicahyono.my.id",
-    title: "Budi Cahyono | Software Engineer & AI Engineer",
-    description: "Membangun sistem web & AI yang scalable untuk bisnis dan kampus.",
-    siteName: "Budi Cahyono Portfolio",
+    title: "Kusumawati | Chemical Engineering Graduate",
+    description:
+      "Chemical Engineering graduate with experience in research, laboratory analysis, and industrial process engineering.",
+    siteName: "Kusumawati Portfolio",
     images: [
       {
-        url: "/portfoliostackplus.png",
+        url: "/kusumawati.png",
         width: 1200,
         height: 630,
-        alt: "Budi Cahyono Portfolio Preview",
+        alt: "Kusumawati — Chemical Engineering Graduate",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Budi Cahyono | Software Engineer & AI Engineer",
-    description: "Membangun sistem web & AI yang scalable untuk bisnis dan kampus.",
-    creator: "@budigubernur15",
-    images: ["/portfoliostackplus.png"],
+    title: "Kusumawati | Chemical Engineering Graduate",
+    description:
+      "Chemical Engineering graduate with experience in research, laboratory analysis, and industrial process engineering.",
+    images: ["/kusumawati.png"],
   },
   robots: {
     index: true,
@@ -66,21 +66,20 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const requestHeaders = await headers()
+  const locale = requestHeaders.get("x-locale") === "id" ? "id" : "en"
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang={locale} className="scroll-smooth">
       <body
-        className={`${plusJakarta.variable} ${sora.variable} font-sans antialiased flex flex-col min-h-screen bg-white text-slate-900`}
+        className={`${plusJakarta.variable} ${sora.variable} font-sans antialiased`}
       >
-        <main className="flex-grow">
-          {children}
-        </main>
-        
-        <Toaster position="top-center" richColors />
+        {children}
+        <Toaster position="top-right" richColors />
         <Analytics />
       </body>
     </html>

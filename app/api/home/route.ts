@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
 
 // Selalu ambil data terbaru, jangan di-cache
 export const dynamic = "force-dynamic";
@@ -20,6 +21,9 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  const { authenticated, response } = await requireAdmin();
+  if (!authenticated) return response!;
+
   try {
     const body = await request.json();
 

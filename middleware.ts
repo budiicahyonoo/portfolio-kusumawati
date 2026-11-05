@@ -1,24 +1,27 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { verifyAdminSession } from '@/lib/session'
 
-export function middleware(request: NextRequest) {
-  // Cek apakah browser membawa "tanda pengenal" admin
-  const isAuthenticated = request.cookies.get('admin_session')
+export async function middleware(request: NextRequest) {
+  const isAuthenticated = await verifyAdminSession(
+    request.cookies.get('admin_session')?.value,
+  )
 
-  // Jika mencoba buka /admin tapi belum login -> lempar ke /login
   if (request.nextUrl.pathname.startsWith('/admin') && !isAuthenticated) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    const login = new URL('/login', request.url)
+    login.searchParams.set('next', request.nextUrl.pathname)
+    return NextResponse.redirect(login)
   }
 
-  // Jika sudah login tapi iseng buka halaman /login -> lempar langsung ke /admin
   if (request.nextUrl.pathname.startsWith('/login') && isAuthenticated) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
-  return NextResponse.next()
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-locale', request.nextUrl.pathname.startsWith('/id') ? 'id' : 'en')
+  return NextResponse.next({ request: { headers: requestHeaders } })
 }
 
-// Tentukan rute mana saja yang dijaga oleh middleware ini
 export const config = {
-  matcher: ['/admin/:path*', '/login'],
+  matcher: ['/admin/:path*', '/login', '/', '/en/:path*', '/id/:path*'],
 }

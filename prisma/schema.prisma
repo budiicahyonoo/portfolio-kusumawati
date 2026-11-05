@@ -6,6 +6,305 @@ datasource db {
   provider = "postgresql"
 }
 
+// =====================================================
+// PROFILE
+// =====================================================
+model Profile {
+  id                 String   @id @default(uuid())
+  full_name          String   @default("Kusumawati")
+  professional_title String   @default("Chemical Engineering Graduate")
+  summary_en         String   @default("")
+  summary_id         String   @default("")
+  photo_url          String?
+  cv_url             String?
+  email              String?
+  phone              String?
+  whatsapp           String?
+  linkedin_url       String?
+  location           String?
+  social_links       Json?
+  photo_asset_id     String?
+  photo_asset        MediaAsset? @relation("ProfilePhoto", fields: [photo_asset_id], references: [id], onDelete: SetNull)
+  cv_asset_id        String?
+  cv_asset           MediaAsset? @relation("ProfileCv", fields: [cv_asset_id], references: [id], onDelete: SetNull)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+}
+
+// =====================================================
+// EDUCATION
+// =====================================================
+model Education {
+  id               String            @id @default(uuid())
+  institution      String
+  degree           String
+  field_of_study   String?
+  gpa              String?
+  location         String?
+  period_start     String
+  period_end       String?
+  academic_focus   String?
+  academic_focus_en String?
+  academic_focus_id String?
+  description_en   String?
+  description_id   String?
+  logo_url         String?
+  status           String            @default("draft")
+  sort_order       Int               @default(0)
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+  academic_projects AcademicProject[]
+  media            EducationMedia[]
+}
+
+model EducationMedia {
+  id           String      @id @default(uuid())
+  education_id String
+  education    Education   @relation(fields: [education_id], references: [id], onDelete: Cascade)
+  asset_id     String?
+  asset        MediaAsset? @relation(fields: [asset_id], references: [id], onDelete: SetNull)
+  url          String
+  alt_text     String?
+  sort_order   Int         @default(0)
+  created_at   DateTime    @default(now())
+}
+
+// =====================================================
+// ACADEMIC PROJECT
+// =====================================================
+model AcademicProject {
+  id              String     @id @default(uuid())
+  education_id    String?
+  education       Education? @relation(fields: [education_id], references: [id], onDelete: SetNull)
+  title_en        String
+  title_id        String?
+  summary_en      String?
+  summary_id      String?
+  description_en  String?
+  description_id  String?
+  research_area   String?
+  cover_image_url String?
+  status          String     @default("draft")
+  is_featured     Boolean    @default(false)
+  sort_order      Int        @default(0)
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
+  media           ProjectMedia[]
+}
+
+model ProjectMedia {
+  id               String          @id @default(uuid())
+  project_id       String
+  academic_project AcademicProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  asset_id         String?
+  asset            MediaAsset?     @relation(fields: [asset_id], references: [id], onDelete: SetNull)
+  url              String
+  alt_text         String?
+  sort_order       Int             @default(0)
+  created_at       DateTime        @default(now())
+}
+
+// =====================================================
+// EXPERIENCE
+// =====================================================
+model Experience {
+  id                  String    @id @default(uuid())
+  category            String    // Work | Internship | Speaker
+  organization        String
+  position_en         String
+  position_id         String?
+  period_start        String
+  period_end          String?
+  location            String?
+  summary_en          String?
+  summary_id          String?
+  responsibilities_en String?
+  responsibilities_id String?
+  technical_skills    String[]  @default([])
+  logo_url            String?
+  status              String    @default("draft")
+  is_featured         Boolean   @default(false)
+  sort_order          Int       @default(0)
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+  gallery             ExperienceGallery[]
+  documents           ExperienceDocument[]
+}
+
+model ExperienceGallery {
+  id            String      @id @default(uuid())
+  experience_id String
+  experience    Experience  @relation(fields: [experience_id], references: [id], onDelete: Cascade)
+  asset_id      String?
+  asset         MediaAsset? @relation(fields: [asset_id], references: [id], onDelete: SetNull)
+  url           String
+  alt_text      String?
+  sort_order    Int         @default(0)
+  created_at    DateTime    @default(now())
+}
+
+model ExperienceDocument {
+  id            String      @id @default(uuid())
+  experience_id String
+  experience    Experience  @relation(fields: [experience_id], references: [id], onDelete: Cascade)
+  asset_id      String?
+  asset         MediaAsset? @relation(fields: [asset_id], references: [id], onDelete: SetNull)
+  url           String
+  label_en      String?
+  label_id      String?
+  file_type     String?
+  sort_order    Int         @default(0)
+  created_at    DateTime    @default(now())
+}
+
+// =====================================================
+// CERTIFICATION (Certification | Training | Journal | Patent)
+// =====================================================
+model Certification {
+  id               String   @id @default(uuid())
+  category         String   // Certification | Training | Journal | Patent
+  title_en         String
+  title_id         String?
+  issuer           String?
+  year             String?
+  description_en   String?
+  description_id   String?
+  verification_url String?
+  document_url     String?
+  document_asset_id String?
+  document_asset   MediaAsset? @relation("CertificationDocument", fields: [document_asset_id], references: [id], onDelete: SetNull)
+  document_label   String?
+  status           String   @default("draft")
+  is_featured      Boolean  @default(false)
+  sort_order       Int      @default(0)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+}
+
+// =====================================================
+// ORGANIZATION
+// =====================================================
+model Organization {
+  id              String    @id @default(uuid())
+  name            String
+  role_en         String
+  role_id         String?
+  period_start    String
+  period_end      String?
+  location        String?
+  description_en  String?
+  description_id  String?
+  contribution_en String?
+  contribution_id String?
+  logo_url        String?
+  status          String    @default("draft")
+  is_featured     Boolean   @default(false)
+  sort_order      Int       @default(0)
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  media           OrganizationMedia[]
+}
+
+model OrganizationMedia {
+  id              String       @id @default(uuid())
+  organization_id String
+  organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  asset_id        String?
+  asset           MediaAsset?  @relation(fields: [asset_id], references: [id], onDelete: SetNull)
+  url             String
+  alt_text        String?
+  sort_order      Int          @default(0)
+  created_at      DateTime     @default(now())
+}
+
+// =====================================================
+// MEDIA ASSET
+// =====================================================
+model MediaAsset {
+  id                   String               @id @default(uuid())
+  url                  String               @unique
+  filename             String
+  original_filename    String?
+  file_type            String               // image | pdf | document
+  mime_type            String
+  file_size            Int?
+  alt_text             String?
+  description          String?
+  created_at           DateTime             @default(now())
+  updated_at           DateTime             @updatedAt
+  project_media        ProjectMedia[]
+  education_media      EducationMedia[]
+  experience_galleries ExperienceGallery[]
+  experience_documents ExperienceDocument[]
+  organization_media   OrganizationMedia[]
+  profile_photo        Profile[]              @relation("ProfilePhoto")
+  profile_cv           Profile[]              @relation("ProfileCv")
+  certification_documents Certification[]    @relation("CertificationDocument")
+  website_og_images    WebsiteSettings[]      @relation("WebsiteOgImage")
+}
+
+// =====================================================
+// CONTACT INFO
+// =====================================================
+model ContactInfo {
+  id         String   @id @default(uuid())
+  name       String   @default("Kusumawati")
+  email      String?
+  whatsapp   String?
+  linkedin   String?
+  location   String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+// =====================================================
+// CONTACT MESSAGE (from visitors)
+// =====================================================
+model ContactMessage {
+  id         String   @id @default(uuid())
+  name       String
+  email      String
+  subject    String
+  message    String
+  status     String   @default("unread") // unread | read | archived
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+// =====================================================
+// WEBSITE SETTINGS
+// =====================================================
+model WebsiteSettings {
+  id                  String   @id @default(uuid())
+  website_title       String   @default("Kusumawati | Chemical Engineering Graduate")
+  website_description String?
+  default_language    String   @default("en")
+  hero_cta_primary    String   @default("Explore My Experience")
+  hero_cta_secondary  String   @default("Download CV")
+  seo_title           String?
+  seo_description     String?
+  og_image_url        String?
+  og_image_asset_id   String?
+  og_image_asset      MediaAsset? @relation("WebsiteOgImage", fields: [og_image_asset_id], references: [id], onDelete: SetNull)
+  footer_text         String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+}
+
+// =====================================================
+// ADMIN
+// =====================================================
+model Admin {
+  id            String   @id @default(uuid())
+  username      String   @unique @default("admin")
+  password_hash String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
+// =====================================================
+// LEGACY MODELS (retained for data safety)
+// =====================================================
 model Home {
   id                String   @id @default(uuid())
   name              String
@@ -20,7 +319,7 @@ model Home {
 model Skill {
   id         String   @id @default(uuid())
   name       String
-  category   String   // AI/ML, Frontend, Backend, Database, DevOps/Cloud, Tools
+  category   String
   logo_url   String
   sort_order Int      @default(0)
   created_at DateTime @default(now())
@@ -31,48 +330,30 @@ model Project {
   id            String   @id @default(uuid())
   title         String
   description   String
-  category      String   // AI, WEB, APPS
+  category      String
   thumbnail_url String?
   demo_url      String?
   view_url      String?
   technologies  String[]
-  achievements  String[] @default([]) // Fitur utama / pencapaian
-  work_photos   String[] @default([]) // Galeri foto proyek
-  role          String?  // Contoh: "Solo Developer", "Lead AI Engineer"
-  metric        String?  // Contoh: "Akurasi 99.68%", "Digunakan 450+ pengguna"
+  achievements  String[] @default([])
+  work_photos   String[] @default([])
+  role          String?
+  metric        String?
   sort_order    Int      @default(0)
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 }
 
-model Experience {
-  id            String    @id @default(uuid())
-  title         String
-  description   String
-  category      String    // Work, Intern, Freelance
-  thumbnail_url String?
-  demo_url      String?
-  view_url      String?
-  technologies  String[]
-  achievements  String[]  // Poin pencapaian dampak (FR-E1)
-  date_start    DateTime?
-  date_end      DateTime?
-  sort_order    Int       @default(0)
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  work_photos   String[] @default([]) // Array of URLs to work photos
-}
-
 model Blog {
   id            String    @id @default(uuid())
   title         String
-  slug          String?    @unique // Wajib untuk SEO URL
+  slug          String?   @unique
   description   String
-  category      String    
-  tags          String[]  @default([]) // Label topik
+  category      String
+  tags          String[]  @default([])
   thumbnail_url String?
-  content       String?   // Konten Markdown / HTML
-  is_published  Boolean   @default(false) // Draft (false) atau Publish (true)
+  content       String?
+  is_published  Boolean   @default(false)
   view_url      String?
   read_time     Int?
   views         Int       @default(0)
@@ -94,7 +375,7 @@ model Comment {
 
 model Contact {
   id         String   @id @default(uuid())
-  platform   String   // Email, LinkedIn, GitHub, Calendly, WhatsApp
+  platform   String
   url        String
   sort_order Int      @default(0)
   created_at DateTime @default(now())

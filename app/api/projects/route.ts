@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
 
 // Helper: terima array atau string (dipisah koma / baris baru)
 function toStringArray(value: unknown, separator: string | RegExp): string[] {
@@ -13,6 +14,9 @@ function toStringArray(value: unknown, separator: string | RegExp): string[] {
 }
 
 export async function GET() {
+  const { authenticated, response } = await requireAdmin();
+  if (!authenticated) return response!;
+
   try {
     const projects = await prisma.project.findMany({
       orderBy: { sort_order: "asc" },
@@ -49,6 +53,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const { authenticated, response } = await requireAdmin();
+  if (!authenticated) return response!;
+
   try {
     const body = await request.json();
     const { title, description, category, sort_order, role, metric } = body;

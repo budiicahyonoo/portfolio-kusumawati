@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
 export async function PUT(request: Request, { params }: RouteParams) {
+  const { authenticated, response } = await requireAdmin();
+  if (!authenticated) return response!;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -28,6 +32,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
+  const { authenticated, response } = await requireAdmin();
+  if (!authenticated) return response!;
+
   try {
     const { id } = await params;
     await prisma.contact.delete({ where: { id } });

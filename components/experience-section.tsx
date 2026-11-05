@@ -15,7 +15,8 @@ interface Experience {
   thumbnail_url: string | null
   demo_url: string | null
   view_url: string | null
-  technologies: string[]
+  technologies: string[] | string | null
+  tags?: string[] | string | null
   achievements?: string[]
   work_photos?: string[] // Tambahan array untuk foto kerja
   date_start: Date | string | null
@@ -24,6 +25,16 @@ interface Experience {
 
 interface ExperienceSectionProps {
   experiences: Experience[]
+}
+
+function getTechnologies(experience: Experience): string[] {
+  const technologies = experience.technologies ?? experience.tags ?? []
+  if (Array.isArray(technologies)) {
+    return technologies.filter((technology): technology is string => typeof technology === "string")
+  }
+  return typeof technologies === "string"
+    ? technologies.split(",").map((technology) => technology.trim()).filter(Boolean)
+    : []
 }
 
 // Komponen Slider Foto Internal
@@ -169,24 +180,19 @@ export function ExperienceSection({ experiences }: ExperienceSectionProps) {
                               <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">{exp.description}</p>
                             </div>
 
-                            {/* KODE BARU: Mengantisipasi jika properti bernama technologies atau tags */}
                             <div className="flex flex-wrap gap-1.5 mt-auto pt-2">
                               {(() => {
-                                const techData = exp.technologies || (exp as any).tags || [];
-                                const techArray = Array.isArray(techData) 
-                                  ? techData 
-                                  : typeof techData === 'string' ? (techData as string).split(',').map(t => t.trim()).filter(Boolean) : [];
-                                  
+                                const technologies = getTechnologies(exp)
                                 return (
                                   <>
-                                    {techArray.slice(0, 3).map((tech: string) => (
+                                    {technologies.slice(0, 3).map((tech) => (
                                       <span key={tech} className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                                         {tech}
                                       </span>
                                     ))}
-                                    {techArray.length > 3 && (
+                                    {technologies.length > 3 && (
                                       <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-50 text-slate-500 border border-slate-200">
-                                        +{techArray.length - 3}
+                                        +{technologies.length - 3}
                                       </span>
                                     )}
                                   </>
@@ -269,21 +275,17 @@ export function ExperienceSection({ experiences }: ExperienceSectionProps) {
               )}
 
 
-              {/* KODE BARU: fallback aman agar map tidak kosong/error */}
               <div className="mb-8">
                 <h4 className="text-sm font-bold text-slate-900 mb-3">Technologies Used</h4>
                 <div className="flex flex-wrap gap-2">
                   {(() => {
-                    const techData = selectedExp.technologies || (selectedExp as any).tags || [];
-                    const techArray = Array.isArray(techData) 
-                      ? techData 
-                      : typeof techData === 'string' ? (techData as string).split(',').map(t => t.trim()).filter(Boolean) : [];
+                    const technologies = getTechnologies(selectedExp)
 
-                    if (techArray.length === 0) {
+                    if (technologies.length === 0) {
                       return <span className="text-xs text-slate-400 italic">Tidak ada teknologi yang dicantumkan</span>;
                     }
 
-                    return techArray.map((tech: string) => (
+                    return technologies.map((tech) => (
                       <span key={tech} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
                         {tech}
                       </span>

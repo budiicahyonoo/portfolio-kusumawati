@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, Clock, BookOpen, EyeOff } from "lucide-react"
+import { ArrowRight, Clock, BookOpen } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Reveal } from "@/components/reveal"
 

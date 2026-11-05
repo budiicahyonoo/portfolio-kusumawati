@@ -1,99 +1,56 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-
-// Helper: terima array atau string (dipisah koma / baris baru)
-function toStringArray(value: unknown, separator: string | RegExp): string[] {
-  if (Array.isArray(value)) {
-    return value.map((v) => String(v).trim()).filter(Boolean);
-  }
-  if (typeof value === "string") {
-    return value.split(separator).map((v) => v.trim()).filter(Boolean);
-  }
-  return [];
-}
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { requireAdmin } from "@/lib/auth"
 
 export async function GET() {
+  const { authenticated, response } = await requireAdmin()
+  if (!authenticated) return response!
+
   try {
-    const experiences = await prisma.experience.findMany({
-      orderBy: { sort_order: "asc" },
-    });
-
-    const formattedExperiences = experiences.map((e) => ({
-      id: e.id,
-      title: e.title,
-      description: e.description,
-      category: e.category,
-      image_url: e.thumbnail_url,
-      thumbnail_url: e.thumbnail_url,
-      date_start: e.date_start,
-      date_end: e.date_end,
-      sort_order: e.sort_order,
-      demo_url: e.demo_url,
-      view_url: e.view_url,
-      technologies: e.technologies || [],
-      achievements: e.achievements || [],
-      work_photos: e.work_photos || [],
-      tags: e.technologies ? e.technologies.join(", ") : "",
-    }));
-
-    return NextResponse.json(formattedExperiences);
+    const records = await prisma.experience.findMany({ orderBy: { sort_order: "asc" } })
+    return NextResponse.json(records)
   } catch (error) {
-    console.error("Error GET Experience:", error);
-    return NextResponse.json(
-      { error: "Gagal mengambil data experience" },
-      { status: 500 }
-    );
+    console.error("[LEGACY EXPERIENCE GET]", error)
+    return NextResponse.json({ error: "Failed to fetch experience" }, { status: 500 })
   }
 }
 
 export async function POST(request: Request) {
+  const { authenticated, response } = await requireAdmin()
+  if (!authenticated) return response!
+
   try {
-    const body = await request.json();
-    const {
-      title,
-      description,
-      category,
-      date_start,
-      date_end,
-      sort_order,
-      achievements,
-      demo_url,
-      view_url,
-      work_photos,
-    } = body;
+    const body = await request.json()
+    const organization = typeof body.organization === "string" ? body.organization.trim() : ""
+    const position = typeof body.position_en === "string" ? body.position_en.trim() : ""
+    const category = body.category
+    const periodStart = typeof body.period_start === "string" ? body.period_start.trim() : ""
+    if (!organization || !position || !periodStart || !["Work", "Internship", "Speaker"].includes(category)) {
+      return NextResponse.json(
+        { error: "organization, position_en, period_start, and a valid category are required" },
+        { status: 400 },
+      )
+    }
 
-    // Terima nama field dari admin (technologies / thumbnail_url)
-    // maupun versi lama (tags / image_url)
-    const techSource = body.technologies ?? body.tags;
-    const thumbnail = body.thumbnail_url ?? body.image_url;
-
-    const technologiesArray = toStringArray(techSource, ",");
-    const achievementsArray = toStringArray(achievements, "\n");
-    const workPhotosArray = toStringArray(work_photos, ",");
-
-    const newExperience = await prisma.experience.create({
+    const created = await prisma.experience.create({
       data: {
-        title,
-        description,
+        organization,
+        position_en: position,
+        position_id: typeof body.position_id === "string" ? body.position_id : null,
         category,
-        technologies: technologiesArray,
-        thumbnail_url: thumbnail || null,
-        date_start: date_start ? new Date(date_start) : null,
-        date_end: date_end ? new Date(date_end) : null,
-        sort_order: Number(sort_order) || 0,
-        achievements: achievementsArray,
-        demo_url: demo_url || null,
-        view_url: view_url || null,
-        work_photos: workPhotosArray,
+        period_start: periodStart,
+        period_end: typeof body.period_end === "string" ? body.period_end : null,
+        summary_en: typeof body.summary_en === "string" ? body.summary_en : null,
+        summary_id: typeof body.summary_id === "string" ? body.summary_id : null,
+        technical_skills: Array.isArray(body.technical_skills) ? body.technical_skills.filter((value: unknown) => typeof value === "string") : [],
+        status: body.status === "published" ? "published" : "draft",
+        is_featured: body.is_featured === true,
+        sort_order: Number.isInteger(body.sort_order) ? body.sort_order : 0,
       },
-    });
-
-    return NextResponse.json(newExperience);
+    })
+    return NextResponse.json(created, { status: 201 })
   } catch (error) {
-    console.error("Error POST Experience:", error);
-    return NextResponse.json(
-      { error: "Gagal menambahkan experience" },
-      { status: 500 }
-    );
+    console.error("[LEGACY EXPERIENCE POST]", error)
+    return NextResponse.json({ error: "Failed to create experience" }, { status: 500 })
   }
 }

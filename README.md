@@ -1,411 +1,383 @@
-# Portfolio Budi Cahyono
+# Kusumawati Personal Portfolio
 
-Website portfolio full-stack untuk AI Engineer dengan tema elegan hitam dan kuning emas.
+Website portfolio profesional dan CMS admin untuk menampilkan serta mengelola profil Kusumawati di bidang Chemical Engineering, Research & Development, laboratory analysis, dan process engineering. Website publik tersedia dalam bahasa Inggris dan Indonesia; konten portfolio dikelola melalui dashboard admin.
 
-## 🚀 Fitur
+> **Status penting:** aplikasi menggunakan PostgreSQL melalui Prisma. `DATABASE_URL` wajib disiapkan sebelum fitur yang membaca/menulis database dapat digunakan. Repository saat ini belum memiliki direktori `prisma/migrations`; jangan menganggap skema database otomatis diterapkan saat build atau deploy.
 
-- **Portfolio Website**: Tampilan modern dengan section Hero, Skills, Projects, Experience, Blog, dan Contact
-- **Admin Dashboard**: Interface CRUD lengkap untuk mengelola semua konten
-- **Authentication**: Sistem login aman dengan Supabase Auth
-- **Database**: PostgreSQL dengan Row Level Security (RLS)
-- **Responsive Design**: Tampilan optimal di semua device
+## Daftar isi
 
-## 📋 Prasyarat
+- [Fitur](#fitur)
+- [Teknologi](#teknologi)
+- [Struktur dan rute](#struktur-dan-rute)
+- [Prasyarat](#prasyarat)
+- [Menjalankan secara lokal](#menjalankan-secara-lokal)
+- [Menyiapkan administrator](#menyiapkan-administrator)
+- [Menyiapkan database](#menyiapkan-database)
+- [Menjalankan pemeriksaan](#menjalankan-pemeriksaan)
+- [Deploy ke Vercel](#deploy-ke-vercel)
+- [Memperbarui website](#memperbarui-website)
+- [Keamanan dan operasional](#keamanan-dan-operasional)
+- [Batasan dan pekerjaan sebelum rilis](#batasan-dan-pekerjaan-sebelum-rilis)
+- [Troubleshooting](#troubleshooting)
 
-Sebelum memulai, pastikan Anda sudah menginstall:
+## Fitur
 
-- **Node.js** versi 18.x atau lebih tinggi ([Download](https://nodejs.org/))
-- **Git** ([Download](https://git-scm.com/))
-- **VSCode** atau editor code lainnya ([Download](https://code.visualstudio.com/))
-- **Akun Vercel** (untuk deployment) - [Daftar Gratis](https://vercel.com/signup)
-- **Akun Supabase** (sudah terhubung di project ini)
+### Website publik
 
-## 💻 Cara Menjalankan di VSCode
+- Portfolio dalam bahasa Inggris (`/en`) dan Indonesia (`/id`).
+- Home, Education, Certification, Experience, Organization, dan Contact.
+- Menampilkan konten yang berstatus published; data portfolio dikelola dari CMS.
+- Foto profil dan CV bawaan tersedia di folder `public`.
+- Halaman detail, media, dokumen, serta formulir kontak sesuai konten yang tersedia.
 
-### 1. Clone Repository
+Rute halaman publik:
 
-Buka terminal dan jalankan:
+| Halaman | English | Bahasa Indonesia |
+|---|---|---|
+| Home | `/en` | `/id` |
+| Education | `/en/education` | `/id/education` |
+| Certification | `/en/certification` | `/id/certification` |
+| Experience | `/en/experience` | `/id/experience` |
+| Organization | `/en/organization` | `/id/organization` |
+| Contact | `/en/contact` | `/id/contact` |
 
-```bash
-# Clone repository dari GitHub
-git clone https://github.com/username/portfolio-budi-cahyono.git
+`/` mengarahkan pengunjung ke `/en`.
 
-# Masuk ke folder project
-cd portfolio-budi-cahyono
+### Admin dan API
+
+- Login admin di `/login`, dashboard di `/admin`.
+- Autentikasi menggunakan password admin yang di-hash, cookie session HTTP-only, dan secret penandatanganan session.
+- API Route Handlers di `app/api/**`; endpoint admin memeriksa session.
+- Model CMS mencakup profil, pendidikan, proyek akademik, pengalaman, sertifikasi/publikasi/paten, organisasi, pesan kontak, pengaturan website, dan media.
+- Upload media menggunakan Vercel Blob; token penyimpanan hanya digunakan server-side.
+
+Dashboard memerlukan database PostgreSQL yang memiliki skema sesuai `prisma/schema.prisma`, serta satu akun admin yang dibuat dengan langkah bootstrap di bawah.
+
+## Teknologi
+
+| Area | Teknologi |
+|---|---|
+| Framework dan routing | Next.js 16 App Router |
+| Bahasa | TypeScript |
+| UI | React 19, Tailwind CSS 4, komponen Radix UI, Lucide |
+| Database | PostgreSQL |
+| ORM | Prisma 7 dengan `pg` dan `@prisma/adapter-pg` |
+| Autentikasi | `bcryptjs`, cookie session bertanda tangan HMAC |
+| Penyimpanan media | Vercel Blob |
+| Hosting yang dituju | Vercel |
+| Package manager | npm (`package-lock.json`) |
+
+Supabase dapat dipakai sebagai **provider PostgreSQL** bila diinginkan, tetapi aplikasi ini tidak menggunakan Supabase Auth atau kebijakan RLS sebagai sistem login. Autentikasi yang aktif adalah autentikasi admin di dalam aplikasi.
+
+## Struktur dan rute
+
+```text
+app/
+  [locale]/                 Halaman publik EN/ID
+  admin/                    Halaman dashboard
+  api/                      Route Handlers API
+  login/                    Halaman login admin
+  globals.css               Gaya global
+components/
+  admin/                    Modul dashboard/CMS
+  public/                   Komponen portfolio publik
+lib/
+  auth.ts                   Guard endpoint admin
+  prisma.ts                 Prisma Client dan koneksi PostgreSQL
+  session.ts                Pembuatan/verifikasi session admin
+prisma/
+  schema.prisma             Model data aplikasi
+public/
+  kusumawati.png            Foto profil bawaan
+  CV Kusumawati.pdf         CV bawaan
+scripts/
+  bootstrap-admin.cjs       Membuat atau mengganti password admin
 ```
 
-### 2. Install Dependencies
+### Perintah npm
+
+| Perintah | Kegunaan |
+|---|---|
+| `npm run dev` | Development server Next.js |
+| `npm run build` | Membuat Prisma Client lalu production build |
+| `npm run start` | Menjalankan production build secara lokal |
+| `npm run lint` | Memeriksa JavaScript/TypeScript dengan ESLint dan aturan Next.js |
+| `npm run admin:bootstrap` | Membuat atau memperbarui akun admin dari environment variable bootstrap |
+| `npx prisma validate` | Memvalidasi skema Prisma |
+| `npx prisma generate` | Menghasilkan Prisma Client |
+| `npx prisma db push` | Menyelaraskan skema ke database tanpa membuat migration history; gunakan hanya pada database kosong/yang sudah ditinjau |
+| `npx tsc --noEmit` | Memeriksa tipe TypeScript |
+
+## Prasyarat
+
+- Node.js **20.9 atau lebih baru** (disarankan versi LTS yang masih didukung).
+- npm.
+- PostgreSQL yang dapat diakses dari komputer lokal.
+- Git.
+- Akun Vercel dan repository Git untuk deployment.
+- Akun Vercel Blob jika fitur upload media hendak digunakan.
+
+Pilih database lokal atau managed PostgreSQL untuk development. Untuk production/serverless, gunakan connection string yang direkomendasikan provider untuk aplikasi serverless/connection pooling. Simpan database development dan production secara terpisah.
+
+## Menjalankan secara lokal
+
+### 1. Dapatkan source code dan install dependency
+
+Jika repository sudah terbuka di VS Code, jalankan perintah mulai dari langkah 2. Jika melakukan clone, gunakan URL repository yang benar dari pemilik project:
 
 ```bash
-# Install semua package yang dibutuhkan
+git clone <URL-REPOSITORY>
+cd kusumawati-portfolio
 npm install
 ```
 
-Proses ini akan menginstall semua dependencies yang tercantum di `package.json` termasuk Next.js, React, Supabase, Tailwind CSS, dan lainnya.
+Jangan gunakan URL repository contoh dari dokumentasi lama.
 
-### 3. Setup Environment Variables
+### 2. Siapkan environment
 
-Environment variables sudah tersedia di project v0 Anda. Saat menjalankan di local, Anda perlu membuat file `.env.local`:
+Salin template lalu edit file `.env` pada root project. File `.env` dan `.env.local` sudah dikecualikan dari Git:
 
-```bash
-# Copy contoh environment variables
-cp .env.example .env.local
+```powershell
+# Windows PowerShell
+Copy-Item .env.example .env
 ```
 
-Edit file `.env.local` dan isi dengan credentials Supabase Anda:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-```
-
-**Cara mendapatkan credentials:**
-1. Buka [Supabase Dashboard](https://app.supabase.com/)
-2. Pilih project Anda
-3. Klik Settings → API
-4. Copy `Project URL` dan `anon public` key
-
-### 4. Setup Database
-
-Jalankan SQL scripts untuk membuat tabel dan seed data:
-
-#### Opsi A: Via v0 (Recommended)
-
-Di v0 chat, SQL scripts akan otomatis dijalankan saat Anda menyimpan project.
-
-#### Opsi B: Manual via Supabase Dashboard
-
-1. Buka [Supabase Dashboard](https://app.supabase.com/)
-2. Pilih project Anda
-3. Klik **SQL Editor** di sidebar
-4. Copy isi file `scripts/001_create_tables.sql`
-5. Paste di SQL Editor dan klik **Run**
-6. Ulangi untuk `scripts/002_seed_data.sql`
-
-#### Opsi C: Via Command Line
+macOS/Linux:
 
 ```bash
-# Install Supabase CLI
-npm install -g supabase
-
-# Login ke Supabase
-supabase login
-
-# Link project
-supabase link --project-ref your_project_ref
-
-# Run migrations
-supabase db push
+cp .env.example .env
 ```
 
-### 5. Buat Admin User
+Isi nilai yang sesuai. Contoh berikut hanya format—ganti semua placeholder dengan kredensial database milik Anda:
 
-Untuk mengakses admin dashboard, Anda perlu membuat user dengan role admin:
+```dotenv
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public"
+SESSION_SECRET="ganti-dengan-random-secret-minimal-32-karakter"
+BLOB_READ_WRITE_TOKEN="token-vercel-blob"
 
-1. Buka [Supabase Dashboard](https://app.supabase.com/)
-2. Klik **Authentication** → **Users**
-3. Klik **Add User**
-4. Isi email dan password
-5. Klik **Create User**
-6. Setelah user dibuat, klik user tersebut
-7. Scroll ke bagian **User Metadata** atau **Raw User Meta Data**
-8. Tambahkan metadata:
-   ```json
-   {
-     "is_admin": true
-   }
-   ```
-9. Klik **Save**
+# Hanya dipakai saat menjalankan npm run admin:bootstrap.
+ADMIN_USERNAME="admin"
+ADMIN_BOOTSTRAP_PASSWORD="gunakan-password-kuat-minimal-12-karakter"
+```
 
-### 6. Jalankan Development Server
+`DATABASE_URL` yang tersedia di `.env.example` adalah placeholder, bukan koneksi aktif. Minta connection string dari provider PostgreSQL Anda. Jika username/password mengandung karakter khusus (mis. `@`, `:`, `/`, `#`), encode karakter tersebut sesuai format URL.
+
+Buat `SESSION_SECRET` acak dengan Node.js:
 
 ```bash
-# Start development server
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
+Salin hasilnya ke `SESSION_SECRET`. Secret harus sama untuk seluruh instance deployment dan sedikitnya 32 karakter. Jangan gunakan contoh placeholder untuk menjalankan aplikasi.
+
+`BLOB_READ_WRITE_TOKEN` dapat dibiarkan kosong saat hanya menjalankan halaman dan belum menggunakan upload. Buat Vercel Blob store dan token untuk upload media; jangan menaruh token dengan prefix `NEXT_PUBLIC_`.
+
+> Prisma CLI membaca `.env` melalui `prisma.config.ts`. Next.js juga membaca `.env`; bila memakai `.env.local` untuk override Next.js, pastikan `DATABASE_URL` tetap tersedia di `.env` atau di environment proses saat menjalankan perintah Prisma. Script bootstrap membaca `.env.local` terlebih dahulu, lalu `.env`.
+
+### 3. Siapkan PostgreSQL dan skema awal
+
+1. Buat database PostgreSQL development kosong.
+2. Atur `DATABASE_URL` ke database tersebut.
+3. Validasi dan terapkan skema awal:
+
+```bash
+npx prisma validate
+npx prisma generate
+npx prisma db push
+```
+
+Saat ini repository belum memiliki migration files. `db push` cocok untuk menyelaraskan skema awal pada database development kosong, tetapi **bukan** pengganti strategi migrasi versioned untuk production. Jika database tujuan sudah berisi data, berhenti dan tinjau perbedaan skema serta rencana backup/migrasi sebelum menjalankan `db push`; perintah tersebut dapat mengubah skema database.
+
+### 4. Buat akun administrator
+
+Pastikan `ADMIN_USERNAME` dan `ADMIN_BOOTSTRAP_PASSWORD` terisi pada `.env` atau `.env.local`. Password bootstrap minimal 12 karakter. Kemudian jalankan:
+
+```bash
+npm run admin:bootstrap
+```
+
+Script melakukan upsert akun admin dan menyimpan hash bcrypt ke database; script tidak menyimpan password plaintext ke tabel. Setelah berhasil, hapus atau kosongkan `ADMIN_BOOTSTRAP_PASSWORD` dari environment lokal. Password tersebut hanya diperlukan saat menjalankan bootstrap, bukan untuk runtime aplikasi. Untuk mengganti password admin, atur password bootstrap baru lalu jalankan perintah yang sama.
+
+### 5. Jalankan aplikasi
+
+```bash
 npm run dev
 ```
 
-Server akan berjalan di `http://localhost:3000`
+Buka:
 
-### 7. Akses Website
+- Website publik: `http://localhost:3000` (redirect ke `/en`).
+- Bahasa Inggris: `http://localhost:3000/en`.
+- Bahasa Indonesia: `http://localhost:3000/id`.
+- Login admin: `http://localhost:3000/login`.
+- Dashboard admin: `http://localhost:3000/admin` (perlu login).
 
-Buka browser dan akses:
+Tambahkan dan publikasikan konten melalui dashboard. Hanya konten yang berstatus published yang ditujukan untuk tampil di halaman publik. Jangan memasukkan informasi, dokumen, atau terjemahan yang belum disetujui pemilik portfolio.
 
-- **Portfolio Website**: `http://localhost:3000`
-- **Admin Login**: `http://localhost:3000/auth/login`
-- **Admin Dashboard**: `http://localhost:3000/admin` (setelah login)
+Form menampilkan placeholder sebagai contoh format. Placeholder bukan nilai awal dan tidak disimpan; masukkan informasi yang benar-benar telah diverifikasi. Isian wajib ditandai `*` dan browser akan meminta nilainya sebelum submit.
 
-## 🔐 Cara Masuk ke Admin Dashboard
+## Menyiapkan administrator
 
-### Login
+Tidak ada registrasi admin publik. Akun awal dibuat langsung di database menggunakan `npm run admin:bootstrap`.
 
-1. Buka `http://localhost:3000/auth/login`
-2. Masukkan **email** dan **password** yang Anda buat di Supabase
-3. Klik **Sign In**
-4. Anda akan diarahkan ke Admin Dashboard
+- `ADMIN_USERNAME`: nama akun bootstrap; default `admin`.
+- `ADMIN_BOOTSTRAP_PASSWORD`: password sementara untuk bootstrap; minimal 12 karakter.
+- Login aplikasi meminta password admin.
+- Session ditandatangani dengan `SESSION_SECRET` dan memiliki masa berlaku 24 jam.
+- Logout menghapus cookie session.
 
-### Mengelola Konten
+Jangan membagikan password admin, database URL, session secret, atau Blob token. Jika secret session hilang/berubah, session lama tidak lagi valid dan admin perlu login ulang.
 
-Admin Dashboard memiliki menu untuk:
+## Menyiapkan database
 
-1. **Home**: Edit hero section (nama, role, foto, value proposition)
-2. **Skills**: Tambah/edit/hapus skills dengan logo
-3. **Projects**: Kelola project portfolio (AI, Data, Model)
-4. **Experience**: Kelola pengalaman kerja
-5. **Blog**: Kelola artikel blog
-6. **Contact**: Update informasi kontak
+Project menggunakan PostgreSQL, bukan Supabase Auth. Provider PostgreSQL boleh dipilih secara mandiri (misalnya layanan managed PostgreSQL atau PostgreSQL dari Supabase), tetapi connection string harus sesuai dengan kebutuhan runtime Vercel.
 
-Setiap section memiliki:
-- **Add Button**: Tambah item baru
-- **Edit Button**: Edit item yang sudah ada
-- **Delete Button**: Hapus item
-- **Form Dialog**: Interface yang user-friendly untuk input data
+### Development
 
-### Logout
+- Gunakan database terpisah dari production.
+- Isi `DATABASE_URL` lokal.
+- Pada database development baru, terapkan skema dengan `npx prisma db push`.
+- Buat akun admin dengan `npm run admin:bootstrap`.
+- Backup data development yang perlu dipertahankan sebelum mengubah skema.
 
-Klik tombol **Logout** di navigation bar admin dashboard.
+### Production
 
-## 🌐 Cara Deploy ke Vercel (Online)
+Skema production belum mempunyai alur migration yang siap untuk otomatis dijalankan. Untuk database production baru, koordinasikan penerapan skema awal dan bootstrap admin sebagai langkah operasional terpisah sebelum mengandalkan CMS. Jangan menambahkan `prisma db push` ke build command Vercel atau menjalankannya otomatis pada setiap deploy.
 
-### Metode 1: Deploy via v0 (Paling Mudah)
+Sebelum database production yang sudah berisi data diubah, backup database, tinjau migrasi dan mapping data lama, lalu verifikasi pada staging. Repository belum menyiapkan migration files atau data migration untuk mempertahankan data lama.
 
-1. Di v0 chat, klik tombol **Publish** di pojok kanan atas
-2. Pilih atau buat Vercel project baru
-3. v0 akan otomatis:
-   - Push code ke GitHub
-   - Deploy ke Vercel
-   - Setup environment variables
-4. Tunggu deployment selesai
-5. Klik link yang diberikan untuk mengakses website online
+## Menjalankan pemeriksaan
 
-### Metode 2: Deploy via Vercel Dashboard
-
-#### A. Push ke GitHub
+Jalankan pemeriksaan dasar sebelum mengirim perubahan:
 
 ```bash
-# Initialize git (jika belum)
-git init
-
-# Add semua file
-git add .
-
-# Commit
-git commit -m "Initial commit: Portfolio Budi Cahyono"
-
-# Add remote repository
-git remote add origin https://github.com/username/portfolio-budi-cahyono.git
-
-# Push ke GitHub
-git push -u origin main
+npm run lint
+npm audit --omit=dev
+npx prisma validate
+npx prisma generate
+npx tsc --noEmit
+npm run build
 ```
 
-#### B. Deploy di Vercel
+Build yang berhasil tidak membuktikan koneksi database production, operasi CRUD, atau migrasi sudah berfungsi. Verifikasi akses database, login, halaman publik, endpoint admin yang harus menolak akses anonim, upload (jika dipakai), dan pengiriman kontak pada environment yang dituju.
 
-1. Login ke [Vercel Dashboard](https://vercel.com/dashboard)
-2. Klik **Add New** → **Project**
-3. Import repository GitHub Anda
-4. Vercel akan auto-detect Next.js settings
-5. **Configure Project**:
-   - Framework Preset: **Next.js**
-   - Build Command: `npm run build`
-   - Output Directory: `.next`
-6. **Environment Variables**:
-   Tambahkan environment variables berikut:
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-   ```
-7. Klik **Deploy**
-8. Tunggu build selesai (biasanya 2-5 menit)
+## Deploy ke Vercel
 
-#### C. Setup Domain Custom (Opsional)
+### 1. Persiapan sebelum deploy
 
-1. Di Vercel Dashboard, buka project Anda
-2. Klik **Settings** → **Domains**
-3. Tambahkan domain custom Anda
-4. Update DNS settings sesuai instruksi Vercel
-5. Tunggu DNS propagation (bisa 24-48 jam)
+1. Push source code ke repository Git yang dapat diakses Vercel.
+2. Siapkan PostgreSQL production dan tentukan connection string runtime yang sesuai untuk serverless.
+3. Siapkan Vercel Blob jika CMS akan mengunggah media.
+4. Tinjau status skema: repository ini belum mempunyai `prisma/migrations`. Jangan menganggap Vercel akan membuat tabel saat deploy.
+5. Siapkan backup dan proses penerapan skema production. Jangan menjalankan `db push` ke database berisi data tanpa review.
 
-### Metode 3: Deploy via Vercel CLI
+### 2. Import project
 
-```bash
-# Install Vercel CLI
-npm i -g vercel
+1. Buka [Vercel Dashboard](https://vercel.com/dashboard) dan pilih **Add New → Project**.
+2. Import repository Git.
+3. Pilih root directory repository (folder yang berisi `package.json`).
+4. Gunakan framework preset **Next.js**.
+5. Gunakan konfigurasi build default atau:
+   - Install command: `npm install`
+   - Build command: `npm run build`
+   - Output directory: default Next.js (`.next`); jangan override kecuali ada alasan khusus.
+6. Jangan set build command ke `prisma db push`. Script `build` menjalankan `prisma generate` lalu `next build`; perintah tersebut tidak membuat tabel database.
 
-# Login
-vercel login
+### 3. Tambahkan environment variables Vercel
 
-# Deploy
-vercel
+Di **Project → Settings → Environment Variables**, tambahkan variable berikut untuk environment yang memang akan digunakan (Production, Preview, Development):
 
-# Follow prompts:
-# - Link to existing project? No
-# - Project name: portfolio-budi-cahyono
-# - Directory: ./
-# - Override settings? No
+| Variable | Wajib | Keterangan |
+|---|---:|---|
+| `DATABASE_URL` | Ya | Connection string PostgreSQL runtime. Untuk Vercel, gunakan pooled/serverless connection string yang direkomendasikan provider. |
+| `SESSION_SECRET` | Ya | Secret acak minimal 32 karakter; gunakan secret kuat dan konsisten pada seluruh instance project. |
+| `BLOB_READ_WRITE_TOKEN` | Jika upload digunakan | Token server-side dari Vercel Blob. |
 
-# Deploy to production
-vercel --prod
-```
+`ADMIN_USERNAME` dan `ADMIN_BOOTSTRAP_PASSWORD` **bukan environment runtime yang dibutuhkan website**. Gunakan keduanya hanya pada environment lokal ketika menjalankan bootstrap admin. Jangan menyimpan `ADMIN_BOOTSTRAP_PASSWORD` sebagai permanent Vercel variable.
 
-## 📱 Mengupdate Website yang Sudah Online
+Jangan menambahkan credentials sebagai `NEXT_PUBLIC_*`, meng-commit `.env`, atau menyalin secrets ke log. Setelah mengubah environment variables di Vercel, lakukan redeploy agar deployment baru menerimanya.
 
-### Update Konten via Admin Dashboard
+### 4. Terapkan skema dan buat admin
 
-Setelah website online, Anda bisa update konten kapan saja:
+Sebelum admin/API mengakses database production:
 
-1. Buka `https://your-domain.vercel.app/auth/login`
-2. Login dengan akun admin
-3. Edit konten di Admin Dashboard
-4. Perubahan akan langsung terlihat di website
+1. Pastikan database target benar dan telah di-backup (jika bukan database baru).
+2. Terapkan skema dengan prosedur yang telah ditinjau. Untuk database production baru saja, `npx prisma db push` dapat digunakan sebagai bootstrap skema manual setelah review, dengan connection URL production yang sesuai; database berisi data memerlukan rencana migrasi khusus.
+3. Dari komputer tepercaya, gunakan `DATABASE_URL` production secara sementara pada environment lokal, isi `ADMIN_BOOTSTRAP_PASSWORD`, lalu jalankan `npm run admin:bootstrap`. Pastikan bootstrap menunjuk ke database production yang sama dengan deployment. Jangan commit file env tersebut, dan segera hapus nilai/password sementara setelah berhasil.
+4. Periksa deployment dan log server; verifikasi login, konten publik, dan API dengan akun/endpoint yang sesuai.
 
-### Update Code
+Untuk production jangka panjang, tambahkan migration files yang ditinjau dan jalankan deployment migrations secara terkontrol (mis. `prisma migrate deploy`) sebagai langkah release terpisah. Workflow tersebut belum disiapkan di repository saat ini.
 
-```bash
-# Buat perubahan di code
-# ...
+### 5. Deploy dan verifikasi
 
-# Commit changes
-git add .
-git commit -m "Update: deskripsi perubahan"
+Klik **Deploy** atau push ke branch yang dikonfigurasi. Setelah build selesai:
 
-# Push ke GitHub
-git push origin main
+- Buka domain Vercel dan verifikasi `/en` serta `/id`.
+- Verifikasi `/login` dan proses login admin.
+- Verifikasi konten database tampil, dan halaman admin dapat membaca/menyimpan data.
+- Uji upload hanya jika Blob token sudah dikonfigurasi.
+- Periksa deployment logs dan runtime logs untuk error koneksi atau skema.
+- Tambahkan custom domain melalui **Project → Settings → Domains** bila diperlukan, lalu ikuti instruksi DNS Vercel.
 
-# Vercel akan otomatis rebuild dan deploy
-```
+Preview deployments sebaiknya menggunakan database dan secret Preview terpisah; jangan menghubungkan preview tak tepercaya ke database production.
 
-## 🔧 Troubleshooting
+## Memperbarui website
 
-### Error: Environment Variables Not Found
+### Perubahan kode
 
-**Solusi:**
-- Pastikan file `.env.local` ada dan terisi dengan benar
-- Restart development server: `npm run dev`
-- Clear browser cache dan reload
+Commit dan push ke branch Git yang terhubung ke Vercel. Vercel akan membuat deployment baru. Jalankan pemeriksaan lokal terlebih dahulu dan jangan mengubah skema production tanpa prosedur migrasi/backup.
 
-### Error: Cannot Connect to Database
+### Perubahan konten
 
-**Solusi:**
-- Cek Supabase credentials di `.env.local`
-- Pastikan Supabase project aktif
-- Cek Row Level Security (RLS) policies sudah dibuat
+Login ke `/login`, buka dashboard, ubah konten melalui modul terkait, lalu simpan/publikasikan sesuai statusnya. Konten yang belum dipublikasikan tidak seharusnya menjadi materi portfolio publik.
 
-### Error: Admin Cannot Login
+## Keamanan dan operasional
 
-**Solusi:**
-- Pastikan user sudah dibuat di Supabase Authentication
-- Pastikan user memiliki metadata `is_admin: true`
-- Clear browser cookies dan coba login lagi
+- Jangan commit `.env`, `.env.local`, database URL, password, `SESSION_SECRET`, atau `BLOB_READ_WRITE_TOKEN`.
+- Jangan menggunakan database production untuk percobaan lokal atau preview.
+- Backup database sebelum perubahan skema dan sebelum pekerjaan migrasi.
+- Batasi akses ke dashboard dan rotasi password admin bila kredensial terekspos.
+- Gunakan Blob untuk file yang diunggah; token Blob hanya berada di server.
+- Pastikan semua environment Vercel yang aktif mempunyai variabel yang benar; env Production, Preview, dan Development dikelola terpisah.
+- Jangan menaruh data pribadi atau dokumen yang belum mendapat persetujuan untuk dipublikasikan.
 
-### Error: Build Failed on Vercel
+## Batasan dan pekerjaan sebelum rilis
 
-**Solusi:**
-- Cek build logs di Vercel Dashboard
-- Pastikan semua dependencies ada di `package.json`
-- Pastikan environment variables sudah diset di Vercel
+- `DATABASE_URL` harus diisi dan database harus memiliki skema sebelum fitur berbasis database dapat dipakai.
+- Belum ada `prisma/migrations`; proses migration production versioned masih perlu disiapkan.
+- Bootstrap database tidak mengisi konten portfolio. Tambahkan hanya data dan dokumen yang telah diverifikasi/disetujui pemilik.
+- Sebagian detail konten dan terjemahan masih perlu dilengkapi oleh pemilik.
+- Pengujian CRUD terhadap database target, audit aksesibilitas/Lighthouse, dan acceptance end-to-end masih harus dilakukan sebelum menyatakan seluruh kriteria rilis terpenuhi.
 
-### Website Lambat Loading
+## Troubleshooting
 
-**Solusi:**
-- Optimize gambar (gunakan WebP format)
-- Enable caching di Supabase
-- Gunakan Vercel's Edge Network
-- Compress assets dengan Next.js Image Optimization
+### `DATABASE_URL environment variable is not set`
 
-## 📂 Struktur Project
+Pastikan file `.env` berada di root project dan berisi connection string PostgreSQL yang valid. Pastikan juga variable tersedia pada environment Vercel dan redeploy setelah perubahan. Jangan menyelesaikan error ini dengan menaruh connection string langsung di source code.
 
-```
-portfolio-budi-cahyono/
-├── app/                      # Next.js App Router
-│   ├── admin/               # Admin dashboard pages
-│   ├── auth/                # Authentication pages
-│   ├── globals.css          # Global styles & theme
-│   ├── layout.tsx           # Root layout
-│   └── page.tsx             # Homepage
-├── components/              # React components
-│   ├── ui/                  # Reusable UI components
-│   ├── navbar.tsx
-│   ├── hero-section.tsx
-│   ├── skills-section.tsx
-│   └── ...
-├── lib/                     # Utilities
-│   └── supabase/           # Supabase clients
-│       ├── client.ts       # Browser client
-│       ├── server.ts       # Server client
-│       └── proxy.ts        # Middleware client
-├── scripts/                 # SQL scripts
-│   ├── 001_create_tables.sql
-│   └── 002_seed_data.sql
-├── public/                  # Static assets
-├── proxy.ts                 # Middleware
-├── package.json             # Dependencies
-├── next.config.mjs          # Next.js config
-├── tailwind.config.ts       # Tailwind config
-├── tsconfig.json            # TypeScript config
-├── .gitignore              # Git ignore rules
-└── README.md               # This file
-```
+### Koneksi PostgreSQL gagal
 
-## 🎨 Customization
+- Periksa host, port, nama database, username/password, SSL requirements, dan allowlist jaringan dari provider.
+- Pastikan URL-encode karakter khusus pada kredensial.
+- Untuk Vercel gunakan endpoint/pooler yang didukung provider untuk serverless runtime.
+- Pastikan database production/preview tidak tertukar.
+- Prisma CLI harus menerima `DATABASE_URL` ketika menjalankan perintah skema.
+- Jika driver `pg` menampilkan peringatan SSL untuk `sslmode=require`, ikuti rekomendasi resmi provider. Untuk mempertahankan verifikasi sertifikat penuh pada perilaku driver saat ini, gunakan `sslmode=verify-full` hanya jika didukung provider; jangan mengaktifkan mode kompatibilitas libpq yang melemahkan verifikasi tanpa memahami konsekuensinya.
 
-### Mengubah Warna Tema
+### Login admin gagal
 
-Edit `app/globals.css`:
+- Pastikan skema sudah diterapkan ke database yang sedang digunakan aplikasi.
+- Pastikan admin sudah dibuat atau password diperbarui melalui `npm run admin:bootstrap`.
+- Pastikan bootstrap dan aplikasi mengarah ke database yang sama.
+- Periksa `SESSION_SECRET` tersedia dan panjangnya minimal 32 karakter.
+- Jika secret session dirotasi, login ulang untuk membuat session baru.
 
-```css
-@theme inline {
-  --color-primary: oklch(0.75 0.19 75); /* Kuning emas */
-  --color-background: oklch(0.12 0 0);  /* Hitam */
-  /* ... colors lainnya */
-}
-```
+### Upload media gagal
 
-### Mengganti Font
+- Pastikan Vercel Blob store tersedia dan `BLOB_READ_WRITE_TOKEN` sudah diset pada environment aktif.
+- Pastikan file termasuk jenis yang diizinkan dan tidak melebihi 10 MB.
+- Periksa server logs tanpa menyalin token atau informasi sensitif ke laporan.
 
-Edit `app/layout.tsx`:
+### Build Vercel berhasil tetapi halaman/API gagal saat runtime
 
-```tsx
-import { Cute_Font as YourFont } from 'next/font/google'
-
-const yourFont = YourFont({ subsets: ['latin'] })
-```
-
-### Menambah Section Baru
-
-1. Buat component di `components/`
-2. Tambah tabel di database via SQL script
-3. Import dan gunakan di `app/page.tsx`
-4. Buat admin page di `app/admin/`
-
-## 📞 Support
-
-Jika mengalami masalah:
-
-1. Cek dokumentasi di file README ini
-2. Cek Vercel documentation: [vercel.com/docs](https://vercel.com/docs)
-3. Cek Supabase documentation: [supabase.com/docs](https://supabase.com/docs)
-4. Buka issue di GitHub repository
-
-## 📝 License
-
-MIT License - Free to use untuk personal dan commercial projects.
-
----
-
-**Built with:**
-- Next.js 15
-- React 19
-- Supabase (PostgreSQL + Auth)
-- Tailwind CSS v4
-- TypeScript
-- shadcn/ui components
-
-**Developed by:** Budi Cahyono - AI Engineer
-
-**Contact:** 
-- Email: budicahyono.dev@gmail.com
-- LinkedIn: linkedin.com/budii-cahyonoo
-- GitHub: github.com/budicayono
+Build tidak membuktikan bahwa database dapat dijangkau atau skema sudah diterapkan. Pastikan `DATABASE_URL` dan skema production valid, lalu tinjau runtime logs. Jangan menganggap `prisma generate` sebagai pembuatan tabel.

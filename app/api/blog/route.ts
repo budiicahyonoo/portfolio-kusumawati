@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
 
 export async function GET() {
+  const { authenticated, response } = await requireAdmin();
+  if (!authenticated) return response!;
+
   try {
     const blogs = await prisma.blog.findMany({
       orderBy: { created_at: "desc" }, // Urutkan dari yang terbaru
@@ -15,6 +19,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const { authenticated, response } = await requireAdmin();
+  if (!authenticated) return response!;
+
   try {
     const body = await request.json();
     // Tambahkan slug, tags, dan is_published

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -17,6 +19,9 @@ function toStringArray(value: unknown, separator: string | RegExp): string[] {
 }
 
 export async function PUT(request: Request, { params }: RouteParams) {
+  const { authenticated, response } = await requireAdmin();
+  if (!authenticated) return response!;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -47,10 +52,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
     });
 
     return NextResponse.json(updatedProject);
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error PUT Projects:", error);
 
-    if (error.code === "P2025") {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
       return NextResponse.json(
         { error: "Gagal memperbarui, data tidak ditemukan atau sudah dihapus" },
         { status: 404 }
@@ -65,6 +70,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
+  const { authenticated, response } = await requireAdmin();
+  if (!authenticated) return response!;
+
   try {
     const { id } = await params;
     await prisma.project.delete({ where: { id } });
