@@ -44,8 +44,17 @@ export function PortfolioGrid({
       {options.length > 0 && (
         <div className="mb-7 flex flex-wrap gap-2" role="group" aria-label={locale === "en" ? "Filter content" : "Saring konten"}>
           {options.map((option) => (
-            <button key={option} type="button" aria-pressed={selected === option} onClick={() => setSelected(option)}
-              className={`min-h-11 rounded-md border px-4 text-sm font-medium ${selected === option ? "border-primary-700 bg-primary-700 text-white active:bg-primary-900" : "border-primary-700 bg-white text-primary-700 hover:bg-primary-50 hover:text-primary-800 active:bg-primary-100"}`}>
+            <button
+              key={option}
+              type="button"
+              aria-pressed={selected === option}
+              onClick={() => setSelected(option)}
+              className={`min-h-10 rounded-md px-4 text-xs font-semibold uppercase tracking-wider transition-all duration-150 ${
+                selected === option
+                  ? "bg-primary-700 text-white shadow-sm"
+                  : "border border-neutral-200 bg-white text-neutral-700 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
+              }`}
+            >
               {categoryLabels[locale][option]}
             </button>
           ))}
@@ -78,12 +87,30 @@ function PortfolioCard({ item, locale }: { item: PortfolioItem; locale: Locale }
     : item.responsibilities_en
 
   return (
-    <article className="min-w-0 border-t-2 border-primary-300 bg-white pt-4">
-      {image && <img src={image} alt="" className="mb-4 aspect-[4/3] w-full rounded-lg object-cover" />}
-      {category && <p className="mb-2 text-sm font-medium text-primary-700">{categoryLabels[locale][category] || category}</p>}
-      <h2 className="break-words text-xl font-semibold leading-snug text-primary-950">{localizedTitle}</h2>
-      {meta.map((value) => <p key={value} className="mt-2 text-sm text-neutral-600">{value}</p>)}
-      {description && <p className="mt-3 line-clamp-3 leading-7 text-neutral-700">{description}</p>}
+    <article className="group min-w-0 rounded-2xl border border-neutral-200 bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary-300 hover:shadow-[0_12px_32px_rgba(0,83,255,0.12)] sm:p-6">
+      {image && (
+        <div className="mb-4 overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50">
+          <img
+            src={image}
+            alt=""
+            className="aspect-[4/3] w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105 sm:p-6"
+          />
+        </div>
+      )}
+      {category && (
+        <span className="inline-block rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary-700">
+          {categoryLabels[locale][category] || category}
+        </span>
+      )}
+      <h2 className="mt-3 break-words text-xl font-bold leading-snug text-neutral-950 transition-colors group-hover:text-primary-700">
+        {localizedTitle}
+      </h2>
+      {meta.length > 0 && (
+        <div className="mt-2 space-y-0.5 text-xs font-medium text-neutral-500 sm:text-sm">
+          {meta.map((value) => <p key={value}>{value}</p>)}
+        </div>
+      )}
+      {description && <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-neutral-600">{description}</p>}
       <DetailDialog
         title={localizedTitle}
         description={[description, details].filter(Boolean).join("\n\n")}

@@ -150,34 +150,78 @@ export function PublicShell({
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <header className="sticky top-0 z-40 border-b border-rule bg-paper">
+      <header className="sticky top-0 z-40 border-b border-rule bg-paper/95 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 lg:h-[72px] lg:px-10">
-          <Link className="shrink-0 text-lg font-bold text-ink" href={`/${locale}`}>Kusumawati</Link>
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">
-            {visibleNav.map((item) => (
-              <Link key={item.id} href={item.href} aria-current={active === item.id ? "page" : undefined}
-                className={`min-h-11 rounded-md px-3 py-2 text-sm font-medium hover:bg-primary-50 hover:text-primary-700 ${active === item.id ? "bg-primary-50 text-primary-700" : "text-ink-2"}`}>
-                {item.label[locale]}
-              </Link>
-            ))}
+          <Link
+            className="shrink-0 text-2xl font-medium tracking-tight text-ink transition-opacity hover:opacity-80"
+            style={{
+              fontFamily: "var(--font-serif-italic, Georgia), serif",
+              fontStyle: "italic",
+            }}
+            href={`/${locale}`}
+          >
+            Kusumawati
+          </Link>
+          <nav className="hidden items-center gap-1.5 lg:flex" aria-label="Main navigation">
+            {visibleNav.map((item) => {
+              const isActive = active === item.id
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`min-h-10 rounded-md px-3.5 py-2 text-sm font-semibold transition-all duration-150 ${
+                    isActive
+                      ? "bg-primary-700 text-white shadow-sm"
+                      : "text-ink-2 hover:bg-primary-50 hover:text-primary-700"
+                  }`}
+                >
+                  {item.label[locale]}
+                </Link>
+              )
+            })}
           </nav>
           <div className="flex items-center gap-2">
             <div className="flex overflow-hidden rounded-md border border-rule-strong text-xs font-semibold">
               {(["en", "id"] as const).map((lang) => (
-                <Link key={lang} href={visibleNav.find((item) => item.id === active)?.href.replace(`/${locale}`, `/${lang}`) ?? `/${lang}`}
+                <Link
+                  key={lang}
+                  href={visibleNav.find((item) => item.id === active)?.href.replace(`/${locale}`, `/${lang}`) ?? `/${lang}`}
                   aria-current={locale === lang ? "true" : undefined}
-                  className={`min-h-10 px-3 py-2 ${locale === lang ? "bg-primary-700 text-paper" : "text-ink-2 hover:bg-primary-50 hover:text-primary-700"}`}>
+                  className={`min-h-10 px-3 py-2 transition-colors ${
+                    locale === lang ? "bg-primary-700 text-white" : "text-ink-2 hover:bg-primary-50 hover:text-primary-700"
+                  }`}
+                >
                   {lang === "en" ? "EN" : "ID"}
                 </Link>
               ))}
             </div>
-            <a className="hidden min-h-10 items-center gap-2 rounded-md border border-primary-700 px-3 text-sm font-semibold text-primary-700 hover:bg-primary-50 hover:text-primary-800 sm:inline-flex" href="/CV%20Kusumawati.pdf" download>
+            <a
+              className="hidden min-h-10 items-center gap-2 rounded-md border border-primary-700 px-3.5 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-50 hover:text-primary-800 sm:inline-flex"
+              href="/CV%20Kusumawati.pdf"
+              download
+            >
               <Download size={15} aria-hidden="true" />CV
             </a>
             <details className="relative lg:hidden">
               <summary className="grid min-h-10 min-w-10 cursor-pointer list-none place-items-center rounded-md border border-rule-strong text-sm" aria-label="Open navigation">Menu</summary>
               <nav className="absolute right-0 top-12 z-50 grid w-56 gap-1 rounded-lg border border-rule bg-paper p-2 shadow-lg" aria-label="Mobile navigation">
-                {visibleNav.map((item) => <Link key={item.id} href={item.href} className="min-h-11 rounded-md px-3 py-2 text-sm hover:bg-primary-50 hover:text-primary-700">{item.label[locale]}</Link>)}
+                {visibleNav.map((item) => {
+                  const isActive = active === item.id
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      className={`min-h-11 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                        isActive
+                          ? "bg-primary-700 text-white font-semibold"
+                          : "hover:bg-primary-50 hover:text-primary-700"
+                      }`}
+                    >
+                      {item.label[locale]}
+                    </Link>
+                  )
+                })}
                 <a className="min-h-11 rounded-md px-3 py-2 text-sm text-primary-700 hover:bg-primary-50 hover:text-primary-800" href="/CV%20Kusumawati.pdf" download>{text.cv}</a>
               </nav>
             </details>
@@ -187,7 +231,18 @@ export function PublicShell({
       {children}
       <footer className="border-t border-rule bg-primary-950 text-paper">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:grid-cols-2 lg:grid-cols-3 lg:px-10">
-          <div><p className="font-semibold">Kusumawati</p><p className="mt-1 text-sm text-primary-200">{text.tagline}</p></div>
+          <div>
+            <p
+              className="text-2xl font-medium tracking-tight text-white"
+              style={{
+                fontFamily: "var(--font-serif-italic, Georgia), serif",
+                fontStyle: "italic",
+              }}
+            >
+              Kusumawati
+            </p>
+            <p className="mt-1 text-sm text-primary-200">{text.tagline}</p>
+          </div>
           <nav aria-label="Footer navigation" className="grid grid-cols-2 gap-2 text-sm text-primary-100">
             {visibleNav.map((item) => <Link key={item.id} href={item.href} className="hover:text-paper">{item.label[locale]}</Link>)}
           </nav>
@@ -346,7 +401,15 @@ function HomeHighlights({ title, locale, items }: { title: string; locale: Local
   return (
     <section className="border-t border-rule bg-paper py-14 sm:py-20">
       <div className="mx-auto max-w-6xl px-5 lg:px-10">
-        <h2 className="mb-8 text-3xl font-bold text-ink">{title}</h2>
+        <h2
+          className="mb-8 text-3xl font-medium tracking-tight text-ink sm:text-4xl"
+          style={{
+            fontFamily: "var(--font-serif-italic, Georgia), serif",
+            fontStyle: "italic",
+          }}
+        >
+          {title}
+        </h2>
         <PortfolioGrid locale={locale} items={items} empty={labels[locale].noContent} />
       </div>
     </section>
@@ -372,14 +435,31 @@ export function ContentPage({
   return (
     <PublicShell locale={locale} active={section}>
       <main className="mx-auto min-h-[65vh] max-w-6xl px-5 py-12 sm:py-16 lg:px-10">
-        <header className="mb-10 max-w-3xl border-b border-rule pb-7 sm:mb-12">
-          <h1 className="break-words text-4xl font-bold text-ink sm:text-5xl">{sectionName}</h1>
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-ink-2">{intro}</p>
+        <header className="mb-10 max-w-3xl border-b border-rule pb-7 sm:mb-14">
+          <h1
+            className="break-words text-4xl font-medium tracking-tight text-ink sm:text-5xl lg:text-6xl"
+            style={{
+              fontFamily: "var(--font-serif-italic, Georgia), serif",
+              fontStyle: "italic",
+            }}
+          >
+            {sectionName}
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-2 sm:text-lg sm:leading-8">{intro}</p>
         </header>
         {section === "contact" ? (
           <div className="grid gap-12 lg:grid-cols-2">
-            <section aria-labelledby="contact-methods">
-              <h2 id="contact-methods" className="text-2xl font-semibold text-ink">{text.contactMethods}</h2>
+            <section aria-labelledby="contact-methods" className="rounded-2xl border border-rule bg-white p-6 shadow-sm transition-all duration-300 hover:border-primary-300 hover:shadow-[0_12px_32px_rgba(0,83,255,0.12)] sm:p-8">
+              <h2
+                id="contact-methods"
+                className="text-2xl font-medium tracking-tight text-ink sm:text-3xl"
+                style={{
+                  fontFamily: "var(--font-serif-italic, Georgia), serif",
+                  fontStyle: "italic",
+                }}
+              >
+                {text.contactMethods}
+              </h2>
               <div className="mt-6 space-y-4">
                 {profile?.email && <ContactLine icon={<Mail size={19} />} label="Email" value={profile.email} href={`mailto:${profile.email}`} />}
                 {profile?.whatsapp && <ContactLine icon={<Phone size={19} />} label="WhatsApp" value={profile.whatsapp} href={`https://wa.me/${profile.whatsapp.replace(/\D/g, "")}`} />}
@@ -387,18 +467,40 @@ export function ContentPage({
                 {profile?.location && <ContactLine icon={<MapPin size={19} />} label="Location" value={profile.location} />}
               </div>
             </section>
-            <section aria-labelledby="send-message">
-              <h2 id="send-message" className="mb-5 text-2xl font-semibold text-ink">{text.send}</h2>
+            <section aria-labelledby="send-message" className="rounded-2xl border border-rule bg-white p-6 shadow-sm transition-all duration-300 hover:border-primary-300 hover:shadow-[0_12px_32px_rgba(0,83,255,0.12)] sm:p-8">
+              <h2
+                id="send-message"
+                className="mb-6 text-2xl font-medium tracking-tight text-ink sm:text-3xl"
+                style={{
+                  fontFamily: "var(--font-serif-italic, Georgia), serif",
+                  fontStyle: "italic",
+                }}
+              >
+                {text.send}
+              </h2>
               <ContactForm locale={locale} />
             </section>
           </div>
         ) : section === "education" ? (
-          <div className="space-y-12">
-              <PortfolioGrid locale={locale} items={items} empty={text.noContent} />
-              {projects.length > 0 && <section><h2 className="mb-6 text-2xl font-semibold text-ink">{text.projects}</h2><PortfolioGrid locale={locale} items={projects} empty={text.noContent} /></section>}
+          <div className="space-y-14">
+            <PortfolioGrid locale={locale} items={items} empty={text.noContent} />
+            {projects.length > 0 && (
+              <section className="pt-6">
+                <h2
+                  className="mb-8 text-3xl font-medium tracking-tight text-ink sm:text-4xl"
+                  style={{
+                    fontFamily: "var(--font-serif-italic, Georgia), serif",
+                    fontStyle: "italic",
+                  }}
+                >
+                  {text.projects}
+                </h2>
+                <PortfolioGrid locale={locale} items={projects} empty={text.noContent} />
+              </section>
+            )}
           </div>
         ) : (
-            <PortfolioGrid locale={locale} items={items} filter={section === "experience" ? "experience" : section === "certification" ? "certification" : undefined} empty={text.noContent} />
+          <PortfolioGrid locale={locale} items={items} filter={section === "experience" ? "experience" : section === "certification" ? "certification" : undefined} empty={text.noContent} />
         )}
       </main>
     </PublicShell>
