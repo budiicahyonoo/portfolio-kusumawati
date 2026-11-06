@@ -358,6 +358,7 @@ Pastikan file `.env` berada di root project dan berisi connection string Postgre
 ### Koneksi PostgreSQL gagal
 
 - Periksa host, port, nama database, username/password, SSL requirements, dan allowlist jaringan dari provider.
+- `P1000` dari Prisma atau `28P01` dari PostgreSQL berarti server dapat dijangkau tetapi menolak autentikasi. Perbarui `DATABASE_URL` di `.env.local` dengan kredensial yang benar dari provider; jangan menjalankan bootstrap admin atau migrasi sebagai cara memperbaiki error autentikasi.
 - Pastikan URL-encode karakter khusus pada kredensial.
 - Untuk Vercel gunakan endpoint/pooler yang didukung provider untuk serverless runtime.
 - Pastikan database production/preview tidak tertukar.
@@ -376,6 +377,8 @@ Pastikan file `.env` berada di root project dan berisi connection string Postgre
 
 - Pastikan Vercel Blob store tersedia dan `BLOB_READ_WRITE_TOKEN` sudah diset pada environment aktif.
 - Pastikan file termasuk jenis yang diizinkan dan tidak melebihi 5 MB.
+- Saat development lokal, callback dari Vercel Blob tidak dapat menjangkau `localhost`; setelah upload, aplikasi mendaftarkan file melalui endpoint lokal yang memverifikasi URL Blob, MIME type, ukuran, dan signature file. Database lokal tetap harus menerima koneksi agar file muncul di CMS.
+- Jika browser melaporkan CORS sekaligus `400` dari `vercel.com/api/blob`, catat bahwa pesan CORS tidak mengungkap penyebab respons `400`. Pastikan request `POST /api/upload` berhasil dan `BLOB_READ_WRITE_TOKEN` pada environment Vercel yang sedang dipakai berasal dari Blob store yang benar, lalu redeploy. Jangan mengubah token menjadi variable `NEXT_PUBLIC_*`.
 - Periksa server logs tanpa menyalin token atau informasi sensitif ke laporan.
 
 ### Build Vercel berhasil tetapi halaman/API gagal saat runtime

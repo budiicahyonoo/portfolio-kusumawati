@@ -421,12 +421,22 @@ export default function PortfolioDashboard() {
       .replace(/[^\p{L}\p{N}._ -]/gu, "")
       .trim()
       .slice(0, 180) || "upload"
+    const clientPayload = JSON.stringify({ originalFilename: file.name, mimeType: file.type })
     const blob = await upload(`portfolio/${Date.now()}-${safeName}`, file, {
       access: "public",
       handleUploadUrl: "/api/upload",
       contentType: file.type,
-      clientPayload: JSON.stringify({ originalFilename: file.name, mimeType: file.type }),
+      clientPayload,
     })
+    if (process.env.NODE_ENV !== "production") {
+      return request("/api/upload", {
+        method: "POST",
+        body: JSON.stringify({
+          type: "blob.register-upload",
+          payload: { url: blob.url, clientPayload },
+        }),
+      })
+    }
     return request(`/api/upload?url=${encodeURIComponent(blob.url)}`)
   }
 
