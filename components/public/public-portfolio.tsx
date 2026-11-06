@@ -283,15 +283,15 @@ export function HomePage({
       <main>
         {/* ── Hero Stage ── headline di BELAKANG foto, foto center di bawah, info kecil di sisi ── */}
         <section className="relative isolate overflow-hidden bg-paper">
-          <div className="relative mx-auto flex min-h-[600px] max-w-[1400px] flex-col px-5 sm:px-8 lg:min-h-[calc(100svh-72px)] lg:px-12">
+          <div className="relative mx-auto flex min-h-[580px] max-w-[1400px] flex-col px-5 sm:px-8 lg:h-[calc(100svh-72px)] lg:min-h-[620px] lg:px-12">
 
             {/* LAYER 1 (z-10): Headline — di belakang foto */}
             <div
               aria-hidden="true"
-              className="pointer-events-none relative z-10 select-none pt-8 text-center sm:pt-12 lg:pt-14"
+              className="pointer-events-none relative z-10 select-none pt-4 text-center sm:pt-8 lg:pt-10"
             >
               <p
-                className="text-[clamp(2.75rem,9vw,8rem)] leading-[0.95] text-ink"
+                className="text-[clamp(2.5rem,7vw,6.5rem)] leading-[0.95] text-ink"
                 style={{
                   fontFamily: "var(--font-serif-italic, Georgia), serif",
                   fontStyle: "italic",
@@ -300,13 +300,13 @@ export function HomePage({
               >
                 I&apos;m Chemical
               </p>
-              <span className="font-display -mt-1 block whitespace-nowrap text-[clamp(1.9rem,10vw,9rem)] font-black uppercase leading-[0.88] tracking-tight text-primary-700 sm:-mt-3 lg:-mt-5">
+              <span className="font-display -mt-1 block whitespace-nowrap text-[clamp(1.75rem,8.5vw,7.5rem)] font-black uppercase leading-[0.88] tracking-tight text-primary-700 sm:-mt-2 lg:-mt-3">
                 ENGINEERING
               </span>
             </div>
 
             {/* LAYER 2 (z-20): Foto — nempel bawah, center, kepala menimpa headline */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex h-[72%] justify-center sm:h-[78%]">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex h-[68%] justify-center sm:h-[72%] lg:h-[75%]">
               <img
                 src={photo}
                 alt={`Portrait of ${name}`}
@@ -316,7 +316,7 @@ export function HomePage({
             </div>
 
             {/* LAYER 3 (z-30): Info kiri, CTA tengah, ringkasan kanan */}
-            <div className="relative z-30 mt-auto grid items-end gap-6 pb-6 pt-10 sm:grid-cols-3 sm:pb-10">
+            <div className="relative z-30 mt-auto grid items-end gap-6 pb-6 pt-6 sm:grid-cols-3 sm:pb-8">
               <div className="hidden max-w-[15rem] sm:block">
                 <div className="mb-2.5 h-0.5 w-8 bg-ink" aria-hidden="true" />
                 <p className="font-body text-xs font-bold uppercase leading-relaxed tracking-wider text-ink">
@@ -379,10 +379,21 @@ export function HomePage({
         {competencies.length > 0 && (
           <section className="border-t border-rule bg-paper py-12 sm:py-16">
             <div className="mx-auto max-w-6xl px-5 lg:px-10">
-              <h2 className="mb-6 text-2xl font-bold text-ink">{text.competencies}</h2>
-              <ul className="flex flex-wrap gap-3" aria-label={text.competencies}>
+              <h2
+                className="mb-6 text-3xl font-medium tracking-tight text-ink sm:text-4xl"
+                style={{
+                  fontFamily: "var(--font-serif-italic, Georgia), serif",
+                  fontStyle: "italic",
+                }}
+              >
+                {text.competencies}
+              </h2>
+              <ul className="flex flex-wrap gap-2.5" aria-label={text.competencies}>
                 {competencies.map((skill) => (
-                  <li key={skill} className="rounded-md border border-primary-200 bg-paper px-4 py-2 text-sm text-ink-2">
+                  <li
+                    key={skill}
+                    className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:text-primary-700 hover:shadow-[0_4px_16px_rgba(0,83,255,0.08)] sm:text-sm"
+                  >
                     {skill}
                   </li>
                 ))}
