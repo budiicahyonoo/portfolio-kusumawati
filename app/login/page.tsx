@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -47,16 +49,26 @@ export default function LoginPage() {
         
         <form onSubmit={handleLogin} className="space-y-4">
           <label htmlFor="admin-password" className="block text-sm font-medium text-neutral-800">Password</label>
-          <Input
-            id="admin-password"
-            required
-            autoComplete="current-password"
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full text-sm"
-          />
+          <div className="relative">
+            <Input
+              id="admin-password"
+              required
+              autoComplete="current-password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full text-sm pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {error && <p role="alert" className="text-sm text-danger">{error}</p>}
           
           <Button type="submit" className="w-full bg-primary-700 hover:bg-primary-800 text-white font-semibold rounded-md min-h-11" disabled={isLoading}>

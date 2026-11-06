@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { upload } from "@vercel/blob/client"
+import { toast } from "sonner"
 
 type Field = {
   name: string
@@ -325,6 +326,7 @@ export default function PortfolioDashboard() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [saveStep, setSaveStep] = useState<string>("")
   const [message, setMessage] = useState("")
   const [overview, setOverview] = useState<{ stats?: Record<string, number>; recentMessages?: Record<string, unknown>[] }>({})
   const [file, setFile] = useState<File | null>(null)
@@ -444,6 +446,7 @@ export default function PortfolioDashboard() {
     event.preventDefault()
     if (!editing) return
     setSaving(true)
+    setSaveStep("Menyiapkan data...")
     setMessage("")
     const data: Record<string, unknown> = { ...editing }
     if (active.category) data.category = active.category
@@ -460,10 +463,25 @@ export default function PortfolioDashboard() {
       }
     }
     try {
+      let fileCount = 0
+      for (const field of active.fields ?? []) {
+        const selected = pendingFiles[field.name] ?? []
+        fileCount += selected.length
+      }
+
+      let uploadedCount = 0
       for (const field of active.fields ?? []) {
         const selected = pendingFiles[field.name] ?? []
         if (selected.length === 0) continue
-        const assets = await Promise.all(selected.map(uploadMediaFile)) as Record<string, unknown>[]
+
+        const assets: Record<string, unknown>[] = []
+        for (const f of selected) {
+          uploadedCount++
+          setSaveStep(`Mengunggah file (${uploadedCount}/${fileCount}): ${f.name}...`)
+          const asset = await uploadMediaFile(f) as Record<string, unknown>
+          assets.push(asset)
+        }
+
         if (field.kind === "files") {
           const existingIds = Array.isArray(data[field.name]) ? data[field.name] as unknown[] : []
           data[field.name] = [
@@ -476,6 +494,9 @@ export default function PortfolioDashboard() {
           data[field.name] = assets[0]?.url
         }
       }
+
+      setSaveStep("Menyimpan ke database...")
+
       if (active.id === "profile") {
         data.photo_url = null
         data.cv_url = null
@@ -489,14 +510,23 @@ export default function PortfolioDashboard() {
       } else {
         await request(active.endpoint, { method: "POST", body: JSON.stringify(data) })
       }
+
       setMessage("Saved successfully.")
+      toast.success("Berhasil disimpan!", {
+        description: `Data ${active.label} berhasil disimpan ke database.`
+      })
       setEditing(active.singleton ? data : null)
       setPendingFiles({})
       await load()
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not save changes.")
+      const errMsg = error instanceof Error ? error.message : "Could not save changes."
+      setMessage(errMsg)
+      toast.error("Gagal menyimpan data", {
+        description: errMsg
+      })
     } finally {
       setSaving(false)
+      setSaveStep("")
     }
   }
 
@@ -505,9 +535,16 @@ export default function PortfolioDashboard() {
     try {
       await request(`${active.endpoint}/${item.id}`, { method: "DELETE" })
       setMessage("Deleted successfully.")
+      toast.success("Berhasil dihapus!", {
+        description: `Item “${getTitle(item, active.fields)}” telah dihapus.`
+      })
       await load()
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not delete the item.")
+      const errMsg = error instanceof Error ? error.message : "Could not delete the item."
+      setMessage(errMsg)
+      toast.error("Gagal menghapus", {
+        description: errMsg
+      })
     }
   }
 
@@ -515,16 +552,25 @@ export default function PortfolioDashboard() {
     event.preventDefault()
     if (!file) return
     setSaving(true)
+    setSaveStep(`Mengunggah file: ${file.name}...`)
     setMessage("")
     try {
       await uploadMediaFile(file)
       setFile(null)
       setMessage("Upload complete.")
+      toast.success("Upload berhasil!", {
+        description: `File ${file.name} berhasil diunggah.`
+      })
       await load()
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Upload failed.")
+      const errMsg = error instanceof Error ? error.message : "Upload failed."
+      setMessage(errMsg)
+      toast.error("Gagal mengunggah file", {
+        description: errMsg
+      })
     } finally {
       setSaving(false)
+      setSaveStep("")
     }
   }
 
@@ -685,7 +731,7 @@ export default function PortfolioDashboard() {
                     ))}
                   </div>
                   <button disabled={saving} className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-md bg-primary-700 px-5 font-semibold text-white hover:bg-primary-800 disabled:opacity-60">
-                    <Check size={17} />{saving ? "Saving…" : "Save changes"}
+                    <Check size={17} />{saving ? (saveStep || "Saving…") : "Save changes"}
                   </button>
                 </>
               )}
@@ -770,7 +816,7 @@ export default function PortfolioDashboard() {
                     ))}
                   </div>
                   <div className="mt-6 flex flex-wrap gap-3">
-                    <button disabled={saving} className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary-700 px-5 font-semibold text-white hover:bg-primary-800 disabled:opacity-60"><Check size={17} />{saving ? "Saving…" : "Save"}</button>
+                    <button disabled={saving} className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary-700 px-5 font-semibold text-white hover:bg-primary-800 disabled:opacity-60"><Check size={17} />{saving ? (saveStep || "Saving…") : "Save"}</button>
                     <button type="button" onClick={() => { setEditing(null); setPendingFiles({}) }} className="min-h-11 rounded-md border border-neutral-300 px-5 font-medium hover:bg-neutral-50">Cancel</button>
                   </div>
                 </form>
