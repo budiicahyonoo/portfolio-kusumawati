@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { FileDown } from "lucide-react"
 import { DetailDialog } from "@/components/public/detail-dialog"
 import type { PortfolioItem } from "@/components/public/public-portfolio"
 
@@ -86,12 +87,24 @@ function PortfolioCard({ item, locale }: { item: PortfolioItem; locale: Locale }
     ? item.responsibilities_id || item.responsibilities_en
     : item.responsibilities_en
 
+  const isPdf = (url?: string | null) => {
+    if (!url) return false
+    return url.toLowerCase().includes(".pdf") || url.toLowerCase().includes("mime_type=application/pdf")
+  }
+
+  const primaryDoc = item.document_url ||
+    item.documents?.[0]?.url ||
+    item.media?.find((m) => isPdf(m.url))?.url ||
+    (isPdf(image) ? image : null)
+
+  const displayImage = isPdf(image) ? null : image
+
   return (
     <article className="group min-w-0 rounded-2xl border border-neutral-200 bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary-300 hover:shadow-[0_12px_32px_rgba(0,83,255,0.12)] sm:p-6">
-      {image && (
+      {displayImage && (
         <div className="mb-4 overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50">
           <img
-            src={image}
+            src={displayImage}
             alt=""
             className="aspect-[4/3] w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105 sm:p-6"
           />
@@ -115,15 +128,39 @@ function PortfolioCard({ item, locale }: { item: PortfolioItem; locale: Locale }
         title={localizedTitle}
         description={[description, details].filter(Boolean).join("\n\n")}
         meta={meta}
-        image={image}
-        documentUrl={item.document_url || item.documents?.[0]?.url}
+        image={displayImage}
+        documentUrl={primaryDoc}
         verificationUrl={item.verification_url}
         detailLabel={actionLabels[locale].details}
         documentLabel={actionLabels[locale].document}
         verificationLabel={actionLabels[locale].verification}
       >
         {item.technical_skills && item.technical_skills.length > 0 && <p className="mt-4 text-sm text-neutral-700">{item.technical_skills.join(", ")}</p>}
-        {item.media && item.media.length > 0 && <div className="mt-5 grid min-w-0 grid-cols-2 gap-3">{item.media.map((asset) => <img key={asset.id} src={asset.url} alt={asset.alt_text || ""} className="aspect-[4/3] w-full rounded-md object-cover" />)}</div>}
+        {item.media && item.media.length > 0 && (
+          <div className="mt-5 space-y-3">
+            {/* Gallery images (non-PDF) */}
+            {item.media.filter((m) => !isPdf(m.url)).length > 0 && (
+              <div className="grid min-w-0 grid-cols-2 gap-3">
+                {item.media.filter((m) => !isPdf(m.url)).map((asset) => (
+                  <img key={asset.id} src={asset.url} alt={asset.alt_text || ""} className="aspect-[4/3] w-full rounded-md object-cover" />
+                ))}
+              </div>
+            )}
+            {/* PDF Media items shown as download buttons */}
+            {item.media.filter((m) => isPdf(m.url)).map((asset) => (
+              <a
+                key={asset.id}
+                href={asset.url}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-secondary min-h-11 w-full justify-start gap-2.5 rounded-lg px-4 text-sm font-semibold"
+              >
+                <FileDown size={18} className="shrink-0 text-primary-700" />
+                <span className="truncate">{asset.alt_text || (locale === "id" ? "Buka Dokumen / Flowsheet Proyek (PDF)" : "Open Project Document / Flowsheet (PDF)")}</span>
+              </a>
+            ))}
+          </div>
+        )}
         {item.gallery?.map((asset) => <img key={asset.id} src={asset.url} alt={asset.alt_text || ""} className="mt-4 aspect-[4/3] w-full rounded-md object-cover" />)}
         {item.documents?.map((document) => <a key={document.id} className="mt-3 block min-h-11 py-2 text-sm font-medium text-primary-700 underline" href={document.url} target="_blank" rel="noreferrer">{locale === "id" ? document.label_id || document.label_en || "Buka dokumen" : document.label_en || "Open document"}</a>)}
       </DetailDialog>
