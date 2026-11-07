@@ -283,15 +283,15 @@ export function HomePage({
       <main>
         {/* ── Hero Stage ── headline di BELAKANG foto, foto center di bawah, info kecil di sisi ── */}
         <section className="relative isolate overflow-hidden bg-paper">
-          <div className="relative mx-auto flex min-h-[580px] max-w-[1400px] flex-col px-5 sm:px-8 lg:h-[calc(100svh-72px)] lg:min-h-[620px] lg:px-12">
+          <div className="relative mx-auto flex min-h-[580px] max-w-6xl flex-col px-5 lg:h-[calc(100svh-72px)] lg:min-h-[620px] lg:px-10">
 
-            {/* LAYER 1 (z-10): Headline — di belakang foto */}
+            {/* LAYER 1 (z-10): Headline — di belakang tubuh & kepala foto */}
             <div
               aria-hidden="true"
-              className="pointer-events-none relative z-10 select-none pt-4 text-center sm:pt-8 lg:pt-10"
+              className="pointer-events-none absolute inset-x-0 top-[18%] z-10 select-none text-center sm:top-[20%] lg:top-[22%]"
             >
               <p
-                className="text-[clamp(2.5rem,7vw,6.5rem)] leading-[0.95] text-ink"
+                className="text-[clamp(3rem,8vw,7.5rem)] leading-[0.95] text-ink"
                 style={{
                   fontFamily: "var(--font-serif-italic, Georgia), serif",
                   fontStyle: "italic",
@@ -300,13 +300,13 @@ export function HomePage({
               >
                 I&apos;m Chemical
               </p>
-              <span className="font-display -mt-1 block whitespace-nowrap text-[clamp(1.75rem,8.5vw,7.5rem)] font-black uppercase leading-[0.88] tracking-tight text-primary-700 sm:-mt-2 lg:-mt-3">
+              <span className="font-display -mt-1 block whitespace-nowrap text-[clamp(2.2rem,9.5vw,8.5rem)] font-black uppercase leading-[0.88] tracking-tight text-primary-700 sm:-mt-2 lg:-mt-3">
                 ENGINEERING
               </span>
             </div>
 
-            {/* LAYER 2 (z-20): Foto — nempel bawah, center, kepala menimpa headline */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex h-[68%] justify-center sm:h-[72%] lg:h-[75%]">
+            {/* LAYER 2 (z-20): Foto — nempel bawah, center, badan menutupi headline di belakang */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex h-[76%] justify-center sm:h-[80%] lg:h-[82%]">
               <img
                 src={photo}
                 alt={`Portrait of ${name}`}
@@ -315,9 +315,9 @@ export function HomePage({
               />
             </div>
 
-            {/* LAYER 3 (z-30): Info kiri, CTA tengah, ringkasan kanan */}
+            {/* LAYER 3 (z-30): Info kiri, CTA tengah, ringkasan kanan — sejajar max-w-6xl navbar & footer */}
             <div className="relative z-30 mt-auto grid items-end gap-6 pb-6 pt-6 sm:grid-cols-3 sm:pb-8">
-              <div className="hidden max-w-[15rem] sm:block">
+              <div className="hidden max-w-[16rem] sm:block">
                 <div className="mb-2.5 h-0.5 w-8 bg-ink" aria-hidden="true" />
                 <p className="font-body text-xs font-bold uppercase leading-relaxed tracking-wider text-ink">
                   {locale === "id"
@@ -345,7 +345,7 @@ export function HomePage({
                 </a>
               </div>
 
-              <div className="hidden max-w-[17rem] justify-self-end sm:block sm:text-right">
+              <div className="hidden max-w-[16rem] justify-self-end sm:block sm:text-right">
                 <p className="font-body text-xs leading-relaxed text-ink-2 sm:text-sm">{summary}</p>
                 <Link
                   href={`/${locale}/experience`}
@@ -358,7 +358,7 @@ export function HomePage({
           </div>
 
           {/* Mobile: teks info pindah ke bawah stage biar nggak ketutup foto */}
-          <div className="mx-auto max-w-[1400px] space-y-4 px-5 pb-10 pt-6 sm:hidden">
+          <div className="mx-auto max-w-6xl space-y-4 px-5 pb-10 pt-6 sm:hidden lg:px-10">
             <p className="font-body text-xs font-bold uppercase leading-relaxed tracking-wider text-ink">
               {locale === "id"
                 ? "Spesialisasi dalam riset kimia, analisis laboratorium, dan rekayasa proses."
