@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
-import { Download, Mail, MapPin, Phone, ArrowUpRight } from "lucide-react"
+import { Download, Mail, MapPin, Phone, ArrowUpRight, Menu } from "lucide-react"
 import { ContactForm } from "@/components/public/contact-form"
 import { PortfolioGrid } from "@/components/public/portfolio-grid"
 
@@ -151,9 +151,9 @@ export function PublicShell({
   return (
     <div className="min-h-screen bg-paper text-ink">
       <header className="sticky top-0 z-40 border-b border-rule bg-paper/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 lg:h-[72px] lg:px-10">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-5 lg:h-[72px] lg:px-10">
           <Link
-            className="shrink-0 text-2xl font-medium tracking-tight text-ink transition-opacity hover:opacity-80"
+            className="shrink-0 text-xl font-medium tracking-tight text-ink transition-opacity hover:opacity-80 sm:text-2xl"
             style={{
               fontFamily: "var(--font-serif-italic, Georgia), serif",
               fontStyle: "italic",
@@ -204,25 +204,40 @@ export function PublicShell({
               <Download size={15} aria-hidden="true" />CV
             </a>
             <details className="relative lg:hidden">
-              <summary className="grid min-h-10 min-w-10 cursor-pointer list-none place-items-center rounded-md border border-rule-strong text-sm" aria-label="Open navigation">Menu</summary>
-              <nav className="absolute right-0 top-12 z-50 grid w-56 gap-1 rounded-lg border border-rule bg-paper p-2 shadow-lg" aria-label="Mobile navigation">
+              <summary
+                className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-md border border-rule-strong text-ink transition-colors hover:bg-neutral-100 hover:text-primary-700 focus:outline-hidden [&::-webkit-details-marker]:hidden"
+                aria-label="Open navigation"
+              >
+                <Menu size={20} aria-hidden="true" />
+              </summary>
+              <nav
+                className="absolute right-0 top-12 z-50 grid w-56 gap-1 rounded-xl border border-rule bg-white p-2.5 shadow-xl"
+                aria-label="Mobile navigation"
+              >
                 {visibleNav.map((item) => {
                   const isActive = active === item.id
                   return (
                     <Link
                       key={item.id}
                       href={item.href}
-                      className={`min-h-11 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                      className={`min-h-11 rounded-lg px-3.5 py-2.5 text-sm font-semibold transition-colors ${
                         isActive
-                          ? "bg-primary-700 text-white font-semibold"
-                          : "hover:bg-primary-50 hover:text-primary-700"
+                          ? "bg-primary-700 text-white shadow-xs"
+                          : "text-neutral-700 hover:bg-primary-50 hover:text-primary-700"
                       }`}
                     >
                       {item.label[locale]}
                     </Link>
                   )
                 })}
-                <a className="min-h-11 rounded-md px-3 py-2 text-sm text-primary-700 hover:bg-primary-50 hover:text-primary-800" href="/CV%20Kusumawati.pdf" download>{text.cv}</a>
+                <a
+                  className="mt-1 flex min-h-11 items-center gap-2 rounded-lg border border-primary-200 px-3.5 py-2.5 text-sm font-semibold text-primary-700 hover:bg-primary-50 hover:text-primary-800"
+                  href="/CV%20Kusumawati.pdf"
+                  download
+                >
+                  <Download size={15} aria-hidden="true" />
+                  {text.cv}
+                </a>
               </nav>
             </details>
           </div>
@@ -283,15 +298,15 @@ export function HomePage({
       <main>
         {/* ── Hero Stage ── headline di BELAKANG foto, foto center di bawah, info kecil di sisi ── */}
         <section className="relative isolate overflow-hidden bg-paper">
-          <div className="relative mx-auto flex min-h-[580px] max-w-6xl flex-col px-5 lg:h-[calc(100svh-72px)] lg:min-h-[620px] lg:px-10">
+          <div className="relative mx-auto flex min-h-[500px] max-w-6xl flex-col px-4 sm:min-h-[580px] sm:px-5 lg:h-[calc(100svh-72px)] lg:min-h-[620px] lg:px-10">
 
             {/* LAYER 1 (z-10): Headline — di belakang tubuh & kepala foto */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-[18%] z-10 select-none text-center sm:top-[20%] lg:top-[22%]"
+              className="pointer-events-none absolute inset-x-0 top-[22%] z-10 select-none text-center sm:top-[20%] lg:top-[22%]"
             >
               <p
-                className="text-[clamp(3rem,8vw,7.5rem)] leading-[0.95] text-ink"
+                className="text-[clamp(2.4rem,7.5vw,7.5rem)] leading-[0.95] text-ink"
                 style={{
                   fontFamily: "var(--font-serif-italic, Georgia), serif",
                   fontStyle: "italic",
@@ -300,13 +315,13 @@ export function HomePage({
               >
                 I&apos;m Chemical
               </p>
-              <span className="font-display -mt-1 block whitespace-nowrap text-[clamp(2.2rem,9.5vw,8.5rem)] font-black uppercase leading-[0.88] tracking-tight text-primary-700 sm:-mt-2 lg:-mt-3">
+              <span className="font-display -mt-1 block whitespace-nowrap text-[clamp(1.85rem,9.5vw,8.5rem)] font-black uppercase leading-[0.88] tracking-tight text-primary-700 sm:-mt-2 lg:-mt-3">
                 ENGINEERING
               </span>
             </div>
 
             {/* LAYER 2 (z-20): Foto — nempel bawah, center, badan menutupi headline di belakang */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex h-[76%] justify-center sm:h-[80%] lg:h-[82%]">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex h-[88%] justify-center sm:h-[80%] lg:h-[82%]">
               <img
                 src={photo}
                 alt={`Portrait of ${name}`}
@@ -358,7 +373,7 @@ export function HomePage({
           </div>
 
           {/* Mobile: teks info pindah ke bawah stage biar nggak ketutup foto */}
-          <div className="mx-auto max-w-6xl space-y-4 px-5 pb-10 pt-6 sm:hidden lg:px-10">
+          <div className="mx-auto max-w-6xl space-y-4 px-4 pb-10 pt-6 sm:hidden lg:px-10">
             <p className="font-body text-xs font-bold uppercase leading-relaxed tracking-wider text-ink">
               {locale === "id"
                 ? "Spesialisasi dalam riset kimia, analisis laboratorium, dan rekayasa proses."
@@ -519,5 +534,24 @@ export function ContentPage({
 }
 
 function ContactLine({ icon, label, value, href }: { icon: ReactNode; label: string; value: string; href?: string }) {
-  return <div className="flex items-start gap-4 border-b border-rule py-4"><span className="mt-1 text-primary-700">{icon}</span><div><p className="text-sm text-muted">{label}</p>{href ? <a className="mt-1 inline-block font-medium text-primary-800 underline-offset-4 hover:underline" href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined}>{value}</a> : <p className="mt-1 font-medium">{value}</p>}</div></div>
+  return (
+    <div className="flex items-start gap-4 border-b border-rule py-4">
+      <span className="mt-1 text-primary-700">{icon}</span>
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wider text-neutral-600">{label}</p>
+        {href ? (
+          <a
+            className="mt-1 inline-block font-medium text-primary-800 underline-offset-4 hover:underline"
+            href={href}
+            target={href.startsWith("http") ? "_blank" : undefined}
+            rel={href.startsWith("http") ? "noreferrer" : undefined}
+          >
+            {value}
+          </a>
+        ) : (
+          <p className="mt-1 font-medium text-neutral-900">{value}</p>
+        )}
+      </div>
+    </div>
+  )
 }
