@@ -65,3 +65,5 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
   }
 }
+
+export const PATCH = PUT

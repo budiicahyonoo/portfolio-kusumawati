@@ -30,6 +30,7 @@ export type PortfolioItem = {
   academic_focus?: string | null
   academic_focus_en?: string | null
   academic_focus_id?: string | null
+  research_area?: string | null
   description_en?: string | null
   description_id?: string | null
   summary_en?: string | null

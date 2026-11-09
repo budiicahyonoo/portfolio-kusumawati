@@ -32,3 +32,5 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'Failed to update contact info' }, { status: 500 })
   }
 }
+
+export const PATCH = PUT

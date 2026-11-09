@@ -232,6 +232,10 @@ function AdminInput({
   files = [],
   onFilesChange,
   relationOptions = [],
+  existingUrl,
+  onClearExisting,
+  existingItems,
+  onRemoveExistingItem,
 }: {
   field: Field
   value: unknown
@@ -239,6 +243,10 @@ function AdminInput({
   files?: File[]
   onFilesChange?: (files: File[]) => boolean
   relationOptions?: { value: string; label: string }[]
+  existingUrl?: string | null
+  onClearExisting?: () => void
+  existingItems?: Array<{ id: string; asset_id?: string; url: string; alt_text?: string }>
+  onRemoveExistingItem?: (idOrAssetId: string) => void
 }) {
   const inputClass = "min-h-11 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
   return (
@@ -247,22 +255,109 @@ function AdminInput({
         {field.label}{field.required ? <span aria-hidden="true"> *</span> : null}
       </span>
       {field.kind === "file" || field.kind === "files" ? (
-        <div>
-          <input
-            className="block min-h-11 w-full text-sm file:mr-3 file:min-h-10 file:rounded-md file:border-0 file:bg-neutral-100 file:px-3 file:font-medium"
-            type="file"
-            accept={field.accept}
-            multiple={field.kind === "files"}
-            onChange={(event) => {
-              const selected = Array.from(event.target.files ?? [])
-              if (onFilesChange?.(selected) === false) event.currentTarget.value = ""
-            }}
-          />
-          <p className="mt-1 text-xs text-neutral-600">
-            {field.kind === "files" ? "File baru ditambahkan saat formulir disimpan." : "Pilih file baru untuk mengganti file tersimpan."}
-            {" "}Maksimal 5 MB per file.
-          </p>
-          {files.length > 0 && <p className="mt-1 break-all text-xs text-primary-800">{files.map((file) => file.name).join(", ")}</p>}
+        <div className="space-y-3">
+          {field.kind === "file" && existingUrl ? (
+            <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+              <div className="flex items-center gap-3 overflow-hidden">
+                {existingUrl.match(/\.(jpg|jpeg|png|webp|gif|svg)$/i) || !existingUrl.toLowerCase().includes(".pdf") ? (
+                  <img
+                    src={existingUrl}
+                    alt="File preview"
+                    className="h-12 w-12 rounded object-contain border border-neutral-200 bg-white p-1 shrink-0"
+                  />
+                ) : (
+                  <FileText className="h-8 w-8 text-primary-700 shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-neutral-800">File tersimpan:</p>
+                  <a
+                    href={existingUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-primary-700 underline truncate block hover:text-primary-900"
+                  >
+                    Buka file tersimpan ↗
+                  </a>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onClearExisting}
+                className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors shrink-0"
+              >
+                <Trash2 size={13} />
+                Hapus file
+              </button>
+            </div>
+          ) : null}
+
+          {field.kind === "files" && existingItems && existingItems.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-neutral-800">File pendukung tersimpan ({existingItems.length}):</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {existingItems.map((item, idx) => {
+                  const isImage = item.url.match(/\.(jpg|jpeg|png|webp|gif|svg)$/i) || !item.url.toLowerCase().includes(".pdf")
+                  return (
+                    <div
+                      key={item.id || item.asset_id || idx}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-2 text-xs"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {isImage ? (
+                          <img src={item.url} alt="" className="h-9 w-9 rounded object-contain border bg-white p-0.5 shrink-0" />
+                        ) : (
+                          <FileText className="h-6 w-6 text-red-600 shrink-0" />
+                        )}
+                        <a href={item.url} target="_blank" rel="noreferrer" className="truncate text-primary-700 underline hover:text-primary-900">
+                          {item.alt_text || "Lihat file"}
+                        </a>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onRemoveExistingItem?.(item.asset_id || item.id)}
+                        className="rounded p-1 text-red-600 hover:bg-red-100 transition-colors shrink-0"
+                        title="Hapus file ini"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          <div>
+            <input
+              className="block min-h-11 w-full text-sm file:mr-3 file:min-h-10 file:rounded-md file:border-0 file:bg-neutral-100 file:px-3 file:font-medium hover:file:bg-neutral-200 cursor-pointer"
+              type="file"
+              accept={field.accept}
+              multiple={field.kind === "files"}
+              onChange={(event) => {
+                const selected = Array.from(event.target.files ?? [])
+                if (onFilesChange?.(selected) === false) event.currentTarget.value = ""
+              }}
+            />
+            <p className="mt-1 text-xs text-neutral-600">
+              {field.kind === "files"
+                ? "Pilih file tambahan untuk diunggah (maksimal 5 MB per file)."
+                : existingUrl
+                  ? "Pilih file baru di atas jika ingin mengganti file lama."
+                  : "Pilih file baru untuk disimpan (maksimal 5 MB per file)."}
+            </p>
+            {files.length > 0 && (
+              <div className="mt-2 flex items-center justify-between rounded-md bg-blue-50 px-3 py-1.5 text-xs text-primary-800">
+                <span className="truncate">File baru dipilih: {files.map((file) => file.name).join(", ")}</span>
+                <button
+                  type="button"
+                  onClick={() => onFilesChange?.([])}
+                  className="ml-2 font-bold text-red-600 hover:underline shrink-0"
+                >
+                  Batal
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       ) : field.kind === "textarea" ? (
         <textarea
@@ -417,6 +512,96 @@ export default function PortfolioDashboard() {
     setEditing(values)
   }
 
+  function getExistingFileUrl(fieldName: string): string | null {
+    const target = editing || singleton
+    if (!target) return null
+    if (fieldName === "logo_url") return typeof target.logo_url === "string" ? target.logo_url : null
+    if (fieldName === "cover_image_url") return typeof target.cover_image_url === "string" ? target.cover_image_url : null
+    if (fieldName === "photo_asset_id") {
+      const asset = target.photo_asset as { url?: string } | undefined
+      return (typeof target.photo_url === "string" ? target.photo_url : asset?.url) || null
+    }
+    if (fieldName === "cv_asset_id") {
+      const asset = target.cv_asset as { url?: string } | undefined
+      return (typeof target.cv_url === "string" ? target.cv_url : asset?.url) || null
+    }
+    if (fieldName === "document_asset_id") {
+      const asset = target.document_asset as { url?: string } | undefined
+      return (typeof target.document_url === "string" ? target.document_url : asset?.url) || null
+    }
+    if (typeof target[fieldName] === "string" && (target[fieldName] as string).startsWith("http")) {
+      return target[fieldName] as string
+    }
+    return null
+  }
+
+  function getExistingMediaItems(fieldName: string) {
+    const target = editing || singleton
+    if (!target) return []
+    if (fieldName === "media_asset_ids" && Array.isArray(target.media)) {
+      return target.media as Array<{ id: string; asset_id?: string; url: string; alt_text?: string }>
+    }
+    if (fieldName === "gallery_asset_ids" && Array.isArray(target.gallery)) {
+      return target.gallery as Array<{ id: string; asset_id?: string; url: string; alt_text?: string }>
+    }
+    if (fieldName === "document_asset_ids" && Array.isArray(target.documents)) {
+      return target.documents as Array<{ id: string; asset_id?: string; url: string; alt_text?: string }>
+    }
+    return []
+  }
+
+  function clearExistingFile(fieldName: string) {
+    setEditing((current) => {
+      if (!current) return current
+      const updated = { ...current, [fieldName]: "" }
+      if (fieldName === "photo_asset_id") {
+        updated.photo_url = null
+        updated.photo_asset = null
+        updated.photo_asset_id = null
+      }
+      if (fieldName === "cv_asset_id") {
+        updated.cv_url = null
+        updated.cv_asset = null
+        updated.cv_asset_id = null
+      }
+      if (fieldName === "document_asset_id") {
+        updated.document_url = null
+        updated.document_asset = null
+        updated.document_asset_id = null
+      }
+      if (fieldName === "logo_url") updated.logo_url = null
+      if (fieldName === "cover_image_url") updated.cover_image_url = null
+      return updated
+    })
+    setPendingFiles((current) => ({ ...current, [fieldName]: [] }))
+  }
+
+  function removeExistingMediaItem(fieldName: string, idOrAssetId: string) {
+    setEditing((current) => {
+      if (!current) return current
+      const updated = { ...current }
+      if (fieldName === "media_asset_ids") {
+        const media = Array.isArray(current.media) ? (current.media as Array<{ id: string; asset_id?: string }>) : []
+        updated.media = media.filter((m) => m.asset_id !== idOrAssetId && m.id !== idOrAssetId)
+        const currentIds = Array.isArray(current.media_asset_ids) ? (current.media_asset_ids as string[]) : []
+        updated.media_asset_ids = currentIds.filter((id) => id !== idOrAssetId)
+      }
+      if (fieldName === "gallery_asset_ids") {
+        const gallery = Array.isArray(current.gallery) ? (current.gallery as Array<{ id: string; asset_id?: string }>) : []
+        updated.gallery = gallery.filter((g) => g.asset_id !== idOrAssetId && g.id !== idOrAssetId)
+        const currentIds = Array.isArray(current.gallery_asset_ids) ? (current.gallery_asset_ids as string[]) : []
+        updated.gallery_asset_ids = currentIds.filter((id) => id !== idOrAssetId)
+      }
+      if (fieldName === "document_asset_ids") {
+        const documents = Array.isArray(current.documents) ? (current.documents as Array<{ id: string; asset_id?: string }>) : []
+        updated.documents = documents.filter((d) => d.asset_id !== idOrAssetId && d.id !== idOrAssetId)
+        const currentIds = Array.isArray(current.document_asset_ids) ? (current.document_asset_ids as string[]) : []
+        updated.document_asset_ids = currentIds.filter((id) => id !== idOrAssetId)
+      }
+      return updated
+    })
+  }
+
   async function uploadMediaFile(file: File) {
     const safeName = file.name
       .replace(/[\\/]/g, "")
@@ -498,10 +683,20 @@ export default function PortfolioDashboard() {
       setSaveStep("Menyimpan ke database...")
 
       if (active.id === "profile") {
-        data.photo_url = null
-        data.cv_url = null
+        if (!data.photo_asset_id && !pendingFiles.photo_asset_id?.length) {
+          data.photo_url = null
+        }
+        if (!data.cv_asset_id && !pendingFiles.cv_asset_id?.length) {
+          data.cv_url = null
+        }
       }
-      if (active.id === "credentials") data.document_url = null
+      if (active.id === "credentials") {
+        if (!data.document_asset_id && !pendingFiles.document_asset_id?.length) {
+          data.document_url = null
+        }
+      }
+      if (data.logo_url === "") data.logo_url = null
+      if (data.cover_image_url === "") data.cover_image_url = null
 
       if (active.singleton) {
         await request(active.endpoint, { method: "PUT", body: JSON.stringify(data) })
@@ -717,6 +912,10 @@ export default function PortfolioDashboard() {
                         value={editing?.[field.name] ?? singleton[field.name]}
                         files={pendingFiles[field.name]}
                         relationOptions={field.name === "education_id" ? educationOptions : []}
+                        existingUrl={getExistingFileUrl(field.name)}
+                        onClearExisting={() => clearExistingFile(field.name)}
+                        existingItems={getExistingMediaItems(field.name)}
+                        onRemoveExistingItem={(id) => removeExistingMediaItem(field.name, id)}
                         onFilesChange={(files) => {
                           if (files.some((selected) => selected.size > MAX_FILE_SIZE)) {
                             setMessage("Ukuran file maksimal 5 MB.")
@@ -802,6 +1001,10 @@ export default function PortfolioDashboard() {
                         value={editing?.[field.name]}
                         files={pendingFiles[field.name]}
                         relationOptions={field.name === "education_id" ? educationOptions : []}
+                        existingUrl={getExistingFileUrl(field.name)}
+                        onClearExisting={() => clearExistingFile(field.name)}
+                        existingItems={getExistingMediaItems(field.name)}
+                        onRemoveExistingItem={(id) => removeExistingMediaItem(field.name, id)}
                         onFilesChange={(files) => {
                           if (files.some((selected) => selected.size > MAX_FILE_SIZE)) {
                             setMessage("Ukuran file maksimal 5 MB.")

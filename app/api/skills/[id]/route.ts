@@ -45,3 +45,5 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Failed to delete skill" }, { status: 500 });
   }
 }
+
+export const PATCH = PUT;

@@ -46,7 +46,11 @@ export async function PUT(
       'status', 'sort_order',
     ] as const
     const data = Object.fromEntries(
-      fields.filter((field) => Object.hasOwn(body, field)).map((field) => [field, body[field]]),
+      fields.filter((field) => Object.hasOwn(body, field)).map((field) => {
+        let val = body[field]
+        if (field === 'logo_url' && (val === '' || val === null)) val = null
+        return [field, val]
+      }),
     )
     if (data.status !== undefined && data.status !== 'draft' && data.status !== 'published') {
       return NextResponse.json({ error: 'status must be draft or published' }, { status: 400 })
@@ -110,3 +114,5 @@ export async function DELETE(
     return NextResponse.json({ error: 'Failed to delete' }, { status: 500 })
   }
 }
+
+export const PATCH = PUT

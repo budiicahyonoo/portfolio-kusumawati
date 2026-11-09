@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { FileDown } from "lucide-react"
-import { DetailDialog } from "@/components/public/detail-dialog"
+import { DetailDialog, parseToPoints } from "@/components/public/detail-dialog"
 import type { PortfolioItem } from "@/components/public/public-portfolio"
 
 type Locale = "en" | "id"
@@ -76,28 +76,68 @@ function PortfolioCard({ item, locale }: { item: PortfolioItem; locale: Locale }
   const description = locale === "id"
     ? item.description_id || item.summary_id || item.contribution_id || item.description_en || item.summary_en || null
     : item.description_en || item.summary_en || item.contribution_en || null
-  const category = item.category || item.degree || item.field_of_study || ""
+  const category = item.category || ""
   const image = item.cover_image_url || item.logo_url || item.media?.[0]?.url
-  const meta = [
-    item.organization || item.issuer || item.degree,
-    item.period_start && item.period_end ? `${item.period_start} – ${item.period_end}` : item.period_start || item.year,
-    item.location,
-  ].filter((value): value is string => Boolean(value))
-  const details = locale === "id"
-    ? item.responsibilities_id || item.responsibilities_en
-    : item.responsibilities_en
 
   const isPdf = (url?: string | null) => {
     if (!url) return false
     return url.toLowerCase().includes(".pdf") || url.toLowerCase().includes("mime_type=application/pdf")
   }
 
+  const isEducation = Boolean(item.institution && item.degree)
+  const academicFocus = locale === "id"
+    ? item.academic_focus_id || item.academic_focus || item.academic_focus_en
+    : item.academic_focus_en || item.academic_focus || item.academic_focus_id
+
+  const meta: string[] = []
+  if (isEducation) {
+    if (item.degree || item.field_of_study) {
+      meta.push([item.degree, item.field_of_study].filter(Boolean).join(" — "))
+    }
+    if (item.period_start) {
+      meta.push(item.period_end ? `${item.period_start} – ${item.period_end}` : `${item.period_start} – ${locale === "id" ? "Sekarang" : "Present"}`)
+    }
+    if (item.location) meta.push(item.location)
+    if (item.gpa) meta.push(locale === "id" ? `IPK: ${item.gpa}` : `GPA: ${item.gpa}`)
+    if (academicFocus) meta.push(locale === "id" ? `Fokus: ${academicFocus}` : `Focus: ${academicFocus}`)
+  } else {
+    const orgOrIssuer = item.organization || item.issuer || item.degree
+    if (orgOrIssuer) meta.push(orgOrIssuer)
+    if (item.research_area) {
+      meta.push(locale === "id" ? `Bidang: ${item.research_area}` : `Field: ${item.research_area}`)
+    }
+    const period = item.period_start && item.period_end
+      ? `${item.period_start} – ${item.period_end}`
+      : item.period_start || item.year
+    if (period) meta.push(period)
+    if (item.location) meta.push(item.location)
+  }
+
+  const details = locale === "id"
+    ? item.responsibilities_id || item.responsibilities_en || item.contribution_id || item.contribution_en
+    : item.responsibilities_en || item.contribution_en
+
+  const allMedia = [...(item.gallery || []), ...(item.media || [])]
+  const galleryImages = allMedia
+    .filter((m) => m && m.url && !isPdf(m.url))
+    .slice(0, 3)
+
+  const pdfDocuments = [
+    ...(item.documents || []),
+    ...allMedia.filter((m) => m && m.url && isPdf(m.url)),
+  ]
+
   const primaryDoc = item.document_url ||
     item.documents?.[0]?.url ||
-    item.media?.find((m) => isPdf(m.url))?.url ||
+    allMedia.find((m) => isPdf(m.url))?.url ||
     (isPdf(image) ? image : null)
 
   const displayImage = isPdf(image) ? null : image
+  const categoryBadge = isEducation
+    ? [item.degree, item.field_of_study].filter(Boolean).join(" • ")
+    : (categoryLabels[locale][category] || category || item.field_of_study || "")
+
+  const descriptionPoints = parseToPoints(description)
 
   return (
     <article className="group min-w-0 rounded-2xl border border-neutral-200 bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary-300 hover:shadow-[0_12px_32px_rgba(0,83,255,0.12)] sm:p-6">
@@ -110,9 +150,9 @@ function PortfolioCard({ item, locale }: { item: PortfolioItem; locale: Locale }
           />
         </div>
       )}
-      {category && (
+      {categoryBadge && (
         <span className="inline-block rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary-700">
-          {categoryLabels[locale][category] || category}
+          {categoryBadge}
         </span>
       )}
       <h2 className="mt-3 break-words text-xl font-bold leading-snug text-neutral-950 transition-colors group-hover:text-primary-700">
@@ -123,46 +163,40 @@ function PortfolioCard({ item, locale }: { item: PortfolioItem; locale: Locale }
           {meta.map((value) => <p key={value}>{value}</p>)}
         </div>
       )}
-      {description && <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-neutral-600">{description}</p>}
+
+      {/* Description rendered as points (1, 2, 3...) */}
+      {descriptionPoints.length > 0 && (
+        <ol className="mt-3 space-y-1.5 text-xs sm:text-sm text-neutral-600">
+          {descriptionPoints.slice(0, 3).map((pt, i) => (
+            <li key={i} className="line-clamp-2 flex items-start gap-2">
+              <span className="font-bold text-primary-700 shrink-0">{i + 1}.</span>
+              <span className="truncate">{pt}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+
       <DetailDialog
         title={localizedTitle}
         description={[description, details].filter(Boolean).join("\n\n")}
         meta={meta}
         image={displayImage}
-        documentUrl={primaryDoc}
+        images={galleryImages}
+        documentUrl={primaryDoc && isPdf(primaryDoc) ? primaryDoc : undefined}
+        documents={pdfDocuments}
         verificationUrl={item.verification_url}
         detailLabel={actionLabels[locale].details}
         documentLabel={actionLabels[locale].document}
         verificationLabel={actionLabels[locale].verification}
       >
-        {item.technical_skills && item.technical_skills.length > 0 && <p className="mt-4 text-sm text-neutral-700">{item.technical_skills.join(", ")}</p>}
-        {item.media && item.media.length > 0 && (
-          <div className="mt-5 space-y-3">
-            {/* Gallery images (non-PDF) */}
-            {item.media.filter((m) => !isPdf(m.url)).length > 0 && (
-              <div className="grid min-w-0 grid-cols-2 gap-3">
-                {item.media.filter((m) => !isPdf(m.url)).map((asset) => (
-                  <img key={asset.id} src={asset.url} alt={asset.alt_text || ""} className="aspect-[4/3] w-full rounded-md object-cover" />
-                ))}
-              </div>
-            )}
-            {/* PDF Media items shown as download buttons */}
-            {item.media.filter((m) => isPdf(m.url)).map((asset) => (
-              <a
-                key={asset.id}
-                href={asset.url}
-                target="_blank"
-                rel="noreferrer"
-                className="btn-secondary min-h-11 w-full justify-start gap-2.5 rounded-lg px-4 text-sm font-semibold"
-              >
-                <FileDown size={18} className="shrink-0 text-primary-700" />
-                <span className="truncate">{asset.alt_text || (locale === "id" ? "Buka Dokumen / Flowsheet Proyek (PDF)" : "Open Project Document / Flowsheet (PDF)")}</span>
-              </a>
-            ))}
+        {item.technical_skills && item.technical_skills.length > 0 && (
+          <div className="mt-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+              {locale === "id" ? "Keahlian Teknis" : "Technical Skills"}
+            </p>
+            <p className="mt-1 text-sm text-neutral-800">{item.technical_skills.join(", ")}</p>
           </div>
         )}
-        {item.gallery?.map((asset) => <img key={asset.id} src={asset.url} alt={asset.alt_text || ""} className="mt-4 aspect-[4/3] w-full rounded-md object-cover" />)}
-        {item.documents?.map((document) => <a key={document.id} className="mt-3 block min-h-11 py-2 text-sm font-medium text-primary-700 underline" href={document.url} target="_blank" rel="noreferrer">{locale === "id" ? document.label_id || document.label_en || "Buka dokumen" : document.label_en || "Open document"}</a>)}
       </DetailDialog>
     </article>
   )
