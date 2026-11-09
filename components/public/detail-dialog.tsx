@@ -136,17 +136,19 @@ export function DetailDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-primary-950/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in data-[state=closed]:fade-out" />
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100%-24px)] max-w-[760px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-neutral-200 bg-white p-5 shadow-lg focus:outline-none sm:rounded-2xl sm:p-8">
-          <div className="mb-6 flex items-start justify-between gap-5">
-            <div className="min-w-0">
-              <Dialog.Title className="break-words text-xl font-bold text-primary-950 sm:text-2xl">{title}</Dialog.Title>
-              {meta && <div className="mt-2 space-y-1 text-sm text-neutral-700">{meta.filter(Boolean).map((value) => <p key={value}>{value}</p>)}</div>}
-            </div>
+          <div className="mb-4 flex items-center justify-end">
             <Dialog.Close asChild>
-              <button type="button" aria-label="Close details" className="grid min-h-11 min-w-11 shrink-0 place-items-center rounded-md border border-primary-700 text-xl leading-none text-primary-700 hover:bg-primary-50">×</button>
+              <button
+                type="button"
+                aria-label="Close details"
+                className="grid min-h-10 min-w-10 place-items-center rounded-md border border-neutral-300 text-xl leading-none text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+              >
+                ×
+              </button>
             </Dialog.Close>
           </div>
 
-          {/* Logo container: properly sized like preview, not full-width giant image */}
+          {/* 1. LOGO DULU */}
           {image && (
             <div className="mb-6 flex items-center justify-center overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 p-4 sm:p-6">
               <img
@@ -157,10 +159,19 @@ export function DetailDialog({
             </div>
           )}
 
-          {/* Landscape Carousel: max 3 images, 1.5s auto-slide */}
-          {images.length > 0 && <LandscapeCarousel images={images} />}
+          {/* 2. JUDUL DKK (Title & Meta) */}
+          <div className="mb-6">
+            <Dialog.Title className="break-words text-xl font-bold text-primary-950 sm:text-2xl">{title}</Dialog.Title>
+            {meta && meta.length > 0 && (
+              <div className="mt-2.5 space-y-1 text-sm text-neutral-600">
+                {meta.filter(Boolean).map((value) => (
+                  <p key={value}>{value}</p>
+                ))}
+              </div>
+            )}
+          </div>
 
-          {/* Explanation / Description formatted per point (1, 2, 3...) */}
+          {/* 3. DESKRIPSI (Poin 1, 2, 3...) */}
           {points.length > 0 && (
             <div className="mb-6 space-y-3">
               <ol className="space-y-3">
@@ -176,9 +187,17 @@ export function DetailDialog({
             </div>
           )}
 
+          {/* 4. FOTO DOKUMENTASI (Landscape Carousel di bawah deskripsi) */}
+          {images.length > 0 && (
+            <div className="mb-6">
+              <LandscapeCarousel images={images} />
+            </div>
+          )}
+
+          {/* 5. CHILDREN (Keahlian teknis dkk) */}
           {children}
 
-          {/* Documents / PDFs rendered as buttons */}
+          {/* 6. DOKUMEN PENDUKUNG / TOMBOL DOWNLOAD / VERIFIKASI */}
           {(documentUrl || documents.length > 0 || verificationUrl) && (
             <div className="mt-6 flex flex-wrap gap-3">
               {documentUrl && (
